@@ -172,6 +172,13 @@ class TestAppMoneta(unittest.TestCase):
 
 class TestSourcesControlees(unittest.TestCase):
     def setUp(self):
+        # Jamais le vrai dossier de Moneta, même lancé hors de bin/moneta-tests.
+        import tempfile
+        dossier = tempfile.TemporaryDirectory(prefix='moneta-app-test-')
+        self.addCleanup(dossier.cleanup)
+        variables = patch.dict(os.environ, {'MONETA_HOME': dossier.name})
+        variables.start()
+        self.addCleanup(variables.stop)
         self.server = McpServer()
         self.server.registre = REGISTRE
         self.source = Source('depenses_dojo_annee', 'liste', ('date', 'description', 'montant'))
@@ -206,6 +213,7 @@ class TestSourcesControlees(unittest.TestCase):
 
     def test_purge_au_demarrage_app_seulement(self):
         from moneta.chemins import factures_import
+        self.assertTrue(str(factures_import()).startswith(os.environ['MONETA_HOME']))
         folder = factures_import()
         path = folder / ('c' * 32 + '.img')
         path.write_bytes(b'ancien')
@@ -222,6 +230,44 @@ class TestSourcesControlees(unittest.TestCase):
             self.assertTrue(conserve.exists())
             self.assertIn('facture_deposer', app.handlers)
         conserve.unlink()
+
+    def test_arguments_avant_gestionnaire(self):
+        """Repris de Smith (test_app_photo, spec 009) : un argument faux est refusé avant le gestionnaire, jamais appelé."""
+        with patch('moneta.outils.serveur.factures.purge_deposit_copies'):
+            server = McpServer(registre=REGISTRE)
+        self.assertIn('facture_deposer', REGISTRE.agent('moneta').sans_autrui)
+        for args in ({}, {'import': 'a' * 31}, {'import': 'A' * 32}, {'import': 'a' * 32, 'nom': 'x'}, {'import': []}):
+            with self.subTest(args=args), patch.dict(server.handlers, facture_deposer=lambda a: self.fail('appel interdit')):
+                rep = server.handle({'jsonrpc': '2.0', 'id': 1, 'method': 'outils/appeler',
+                                     'params': {'agent': 'moneta', 'outil': 'facture_deposer', 'arguments': args}})
+                self.assertEqual(rep['error']['code'], -32602)
+
+
+
+class TestTableauDeBordSansPaiements(unittest.TestCase):
+    """Repris de Smith (test_frontiere_paiements, spec 011) : paiements du Dojo illisibles, seules les sources qui en
+    dépendent sont indisponibles, sans zéro; les autres restent identiques."""
+
+    def test_seules_les_sources_liees_sont_indisponibles(self):
+        import tempfile
+        from socle import confirmation
+        from moneta.scripts.moneta_mcp import serveur_fictif
+        dependantes = ['revenus_dojo_annee_total', 'revenus_dojo_annee']
+        autres = ['depenses_dojo_annee_total', 'depenses_dojo_annee', 'cadran_moneta', 'points_solde']
+        with tempfile.TemporaryDirectory() as dossier, patch.object(confirmation, 'AUTOMATIC', True), \
+                patch.dict(os.environ):
+            server = serveur_fictif(dossier, registre=REGISTRE)
+            lire = lambda: server.handle({'jsonrpc': '2.0', 'id': 1, 'method': 'sources/lire', 'params': {
+                'agent': 'moneta', 'sources': dependantes + autres}})['result']['sources']
+            lu = lire()
+            for nom in dependantes + autres:
+                self.assertNotEqual(lu[nom].get('indisponible'), 'lecture impossible', nom)
+            avant = {n: lu[n] for n in autres}
+            os.environ['MONETA_LECTURE_PAIEMENTS'] = str(Path(dossier) / 'aucun-programme')
+            lu = lire()
+        self.assertEqual(lu['revenus_dojo_annee_total'], {'type': 'nombre', 'indisponible': 'lecture impossible'})
+        self.assertEqual(lu['revenus_dojo_annee'], {'type': 'liste', 'indisponible': 'lecture impossible'})
+        self.assertEqual({n: lu[n] for n in autres}, avant)
 
 
 if __name__ == '__main__':
