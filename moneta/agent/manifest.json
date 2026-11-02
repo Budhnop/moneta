@@ -1,0 +1,69 @@
+{
+  "schema": 2,
+  "id": "finances",
+  "nom": "Finances",
+  "role": "Tous les comptes",
+  "statut": "en construction",
+  "icone": "argent",
+  "espace": "organisation",
+  "panneaux": [
+    {
+      "id": "revenus_dojo_annee_total",
+      "titre": "revenus du dojo cette année (sans comptant)",
+      "bloc": "indicateur",
+      "sources": [
+        "revenus_dojo_annee_total"
+      ],
+      "largeur": 1
+    },
+    {
+      "id": "depenses_dojo_annee_total",
+      "titre": "dépenses du dojo cette année",
+      "bloc": "indicateur",
+      "sources": [
+        "depenses_dojo_annee_total"
+      ],
+      "largeur": 1
+    },
+    {
+      "id": "points_solde",
+      "titre": "points Cobalt",
+      "bloc": "indicateur",
+      "sources": [
+        "points_solde"
+      ],
+      "largeur": 1
+    },
+    {
+      "id": "points_objectif",
+      "titre": "objectif de points (Japon)",
+      "bloc": "indicateur",
+      "sources": [
+        "points_objectif"
+      ],
+      "largeur": 1
+    },
+    {
+      "id": "lot",
+      "titre": "Lot Finances en attente",
+      "bloc": "file_approbation",
+      "lot": "finances_lot",
+      "largeur": 1
+    }
+  ],
+  "actions": [
+    {
+      "libelle": "Ajouter une facture",
+      "outil": "facture_deposer",
+      "bloc": "depot_facture"
+    },
+    {
+      "libelle": "Ajouter une dépense",
+      "outil": "depense_preparer"
+    },
+    {
+      "libelle": "Ajouter un revenu",
+      "outil": "revenu_preparer"
+    }
+  ]
+}
