@@ -270,5 +270,22 @@ class TestTableauDeBordSansPaiements(unittest.TestCase):
         self.assertEqual({n: lu[n] for n in autres}, avant)
 
 
+class TestFictifJamaisReel(unittest.TestCase):
+    """Un dossier temporaire sous ~/_PersonalAgents (TMPDIR illisible, repli de Python sur le dossier courant) : MONETA_HOME
+    n'y est pas suivi, le serveur fictif s'arrête avant d'écrire quoi que ce soit, au lieu de prendre le vrai dossier."""
+
+    def test_dossier_sous_personnel_refuse(self):
+        from moneta import chemins
+        from moneta.scripts.moneta_mcp import serveur_fictif
+        dossier = chemins.PERSONNEL / 'moneta-mcp-fictif-jamais-cree'
+        with patch.dict(os.environ), patch('moneta.scripts.moneta_mcp.migrate') as migre, \
+                patch('moneta.scripts.moneta_mcp.McpServer') as serveur, self.assertRaises(SystemExit) as arret:
+            serveur_fictif(str(dossier), registre=REGISTRE)
+        self.assertEqual(arret.exception.code, 2)
+        migre.assert_not_called()
+        serveur.assert_not_called()
+        self.assertFalse(dossier.exists())
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -9,7 +9,7 @@ import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from moneta.agent.droits import REGISTRE, verifier  # noqa: E402
-from moneta.chemins import PAQUET, backups, finances_db  # noqa: E402
+from moneta.chemins import PAQUET, backups, finances_db, home  # noqa: E402
 from moneta.outils.lot import SourceStore  # noqa: E402
 from moneta.outils.mcp_finances import VARIABLE, FinancesReads, finances_lot  # noqa: E402
 from moneta.outils.serveur import McpServer  # noqa: E402
@@ -30,6 +30,11 @@ def log(text):
 def serveur_fictif(folder, ecriture=True, registre=None):
     """Server on a fictitious base inside folder: every default place (exports, backups, journals, Drive) inside it too."""
     os.environ["MONETA_HOME"] = folder
+    if home() != Path(folder):
+        # A temporary folder under ~/_PersonalAgents (TMPDIR not writable: Python falls back to the current folder) is never
+        # followed, so every default place would be the real one: stop before anything is written.
+        log("Moneta MCP --fictif : le dossier temporaire est sous ~/_PersonalAgents; arrêt.")
+        sys.exit(2)
     (Path(folder) / "drive").mkdir(exist_ok=True)
     os.environ["MONETA_DRIVE_DOSSIER"] = str(Path(folder) / "drive")
     # Never Smith's real program: it would read the real Dojo base. The fictitious world has no payment.
