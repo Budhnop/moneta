@@ -38,6 +38,15 @@ def seed_database(folder):
                          'print(seed_database(Path(sys.argv[1]) / "dojo.db"))')
 
 
+def dojo_migre(folder):
+    """Base Dojo fictive vide, folder/dojo.db, faite par les migrations de Smith (core.migrations), sans aucune ligne ajoutée."""
+    return _dojo(folder, 'from contextlib import closing; from pathlib import Path; import sqlite3; '
+                         'from core.migrations import available, FOLDERS; db = Path(sys.argv[1]) / "dojo.db"\n'
+                         'with closing(sqlite3.connect(db)) as con, con:\n'
+                         ' [m.appliquer(con) for _, _, m in available(FOLDERS["dojo"])]\n'
+                         'print(db)')
+
+
 def _dojo(folder, code):
     folder = Path(folder)
     smith_home, drive = folder / 'smith', folder / 'smith-drive'

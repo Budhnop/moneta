@@ -1,0 +1,877 @@
+{
+ "source": "f9c1599",
+ "famille": "catalogue",
+ "cas": [
+  {
+   "nom": "tools/list",
+   "entree": {
+    "today": "2030-06-15"
+   },
+   "attendu": {
+    "smith": [
+     "dojo_consulter",
+     "presences_lire",
+     "dojo_trouver",
+     "dojo_reference",
+     "dojo_historique",
+     "membre_fiche",
+     "presences_preparer",
+     "presences_retrait_preparer",
+     "paiement_preparer",
+     "paye_ailleurs_preparer",
+     "paye_ailleurs_annulation_preparer",
+     "inscription_preparer",
+     "inscription_tarif_preparer",
+     "membre_ajout_preparer",
+     "membre_desactivation_preparer",
+     "membre_reactivation_preparer",
+     "membre_famille_preparer",
+     "membre_renommer_preparer",
+     "dogi_preparer",
+     "session_creer_preparer",
+     "session_activer_preparer",
+     "session_dates_preparer",
+     "grade_preparer",
+     "lot_voir",
+     "lot_retirer",
+     "lot_vider",
+     "lot_preparer",
+     "WR_SAVE_DOJO_BD",
+     "finances_reference",
+     "finances_depenses",
+     "finances_revenus",
+     "finances_rapport",
+     "WR_SAVE_RAPPORT_FICHIER",
+     "banque_a_classer",
+     "banque_operations",
+     "banque_resume",
+     "releves_manquants",
+     "factures_a_classer",
+     "facture_voir",
+     "points_japon",
+     "budget_etat",
+     "finances_historique",
+     "calendrier_liste",
+     "calendrier_evenements",
+     "calendrier_disponibilites",
+     "rappels_listes",
+     "rappels_lire",
+     "dojo_calendrier_verifier",
+     "passage_admissibles",
+     "session_proposer",
+     "pub_occasions",
+     "WR_SAVE_CARTES_FICHIER",
+     "WR_SAVE_FORMULAIRES_PASSAGE_FICHIER",
+     "marque_charte",
+     "publication_apercu",
+     "photos_a_proposer",
+     "photo_voir",
+     "WR_SAVE_PUBLICATION_FICHIER",
+     "publication_preparer",
+     "publication_lot_voir",
+     "publication_lot_retirer",
+     "publication_lot_vider",
+     "publication_lot_preparer",
+     "publications_programmees",
+     "WR_SAVE_DRIVE_FICHIER",
+     "regles_affaires",
+     "ecritures_du_jour",
+     "depense_preparer",
+     "depense_completer_preparer",
+     "depense_annulation_preparer",
+     "revenu_preparer",
+     "revenu_annulation_preparer",
+     "releve_import_preparer",
+     "operation_classer_preparer",
+     "regle_preparer",
+     "regle_retirer_preparer",
+     "objectif_points_preparer",
+     "objectif_points_retirer_preparer",
+     "budget_preparer",
+     "budget_retirer_preparer",
+     "finances_lot_voir",
+     "finances_lot_retirer",
+     "finances_lot_vider",
+     "finances_lot_preparer",
+     "WR_SAVE_FINANCES_BD",
+     "evenement_creer_preparer",
+     "evenement_modifier_preparer",
+     "evenement_supprimer_preparer",
+     "cours_annuler_preparer",
+     "session_cours_preparer",
+     "rappel_creer_preparer",
+     "rappel_modifier_preparer",
+     "rappel_supprimer_preparer",
+     "calendrier_lot_voir",
+     "calendrier_lot_retirer",
+     "calendrier_lot_vider",
+     "calendrier_lot_preparer",
+     "WR_SAVE_CALENDRIER_RAPPELS"
+    ],
+    "finances": [
+     {
+      "name": "finances_reference",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {}
+      }
+     },
+     {
+      "name": "finances_depenses",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "annee": {
+         "type": "integer",
+         "minimum": 2000,
+         "maximum": 2100
+        },
+        "mois": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 12
+        },
+        "categorie": {
+         "type": "string"
+        },
+        "incompletes": {
+         "type": "boolean"
+        },
+        "annulees": {
+         "type": "boolean"
+        },
+        "details": {
+         "type": "boolean"
+        },
+        "inclure_texte_autrui": {
+         "type": "boolean",
+         "description": "vrai seulement quand Personne Exemple demande lui-même ce texte; il sera marqué texte_externe et ouvrira la fenêtre des écritures pendant 30 minutes"
+        }
+       }
+      }
+     },
+     {
+      "name": "finances_revenus",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "annee": {
+         "type": "integer",
+         "minimum": 2000,
+         "maximum": 2100
+        },
+        "mois": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 12
+        },
+        "type": {
+         "type": "string",
+         "enum": [
+          "abonnement",
+          "equipement",
+          "kimono",
+          "guide",
+          "passage",
+          "autre"
+         ]
+        },
+        "annules": {
+         "type": "boolean"
+        },
+        "details": {
+         "type": "boolean"
+        },
+        "inclure_comptant": {
+         "type": "boolean",
+         "description": "true seulement si l'utilisateur demande explicitement le comptant."
+        }
+       }
+      }
+     },
+     {
+      "name": "finances_rapport",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "annee"
+       ],
+       "properties": {
+        "annee": {
+         "type": "integer",
+         "minimum": 2000,
+         "maximum": 2100
+        },
+        "inclure_comptant": {
+         "type": "boolean",
+         "description": "true seulement si l'utilisateur demande explicitement le comptant."
+        }
+       }
+      }
+     },
+     {
+      "name": "WR_SAVE_RAPPORT_FICHIER",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "annee"
+       ],
+       "properties": {
+        "annee": {
+         "type": "integer",
+         "minimum": 2000,
+         "maximum": 2100
+        },
+        "inclure_comptant": {
+         "type": "boolean",
+         "description": "true seulement si l'utilisateur demande explicitement le comptant."
+        }
+       }
+      }
+     },
+     {
+      "name": "banque_a_classer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "annee": {
+         "type": "integer",
+         "minimum": 2000,
+         "maximum": 2100
+        },
+        "mois": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 12
+        },
+        "compte": {
+         "type": "string",
+         "enum": [
+          "Dojo",
+          "Perso"
+         ]
+        },
+        "inclure_texte_autrui": {
+         "type": "boolean",
+         "description": "vrai seulement quand Personne Exemple demande lui-même ce texte; il sera marqué texte_externe et ouvrira la fenêtre des écritures pendant 30 minutes"
+        }
+       }
+      }
+     },
+     {
+      "name": "banque_operations",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "annee": {
+         "type": "integer",
+         "minimum": 2000,
+         "maximum": 2100
+        },
+        "mois": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 12
+        },
+        "compte": {
+         "type": "string",
+         "enum": [
+          "Dojo",
+          "Perso"
+         ]
+        },
+        "statut": {
+         "type": "string",
+         "enum": [
+          "a_classer",
+          "classee"
+         ]
+        },
+        "categorie": {
+         "type": "string",
+         "maxLength": 40
+        },
+        "inclure_texte_autrui": {
+         "type": "boolean",
+         "description": "vrai seulement quand Personne Exemple demande lui-même ce texte; il sera marqué texte_externe et ouvrira la fenêtre des écritures pendant 30 minutes"
+        }
+       }
+      }
+     },
+     {
+      "name": "banque_resume",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "annee"
+       ],
+       "properties": {
+        "annee": {
+         "type": "integer",
+         "minimum": 2000,
+         "maximum": 2100
+        },
+        "mois": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 12
+        },
+        "compte": {
+         "type": "string",
+         "enum": [
+          "Dojo",
+          "Perso"
+         ]
+        }
+       }
+      }
+     },
+     {
+      "name": "releves_manquants",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "compte": {
+         "type": "string",
+         "enum": [
+          "Dojo",
+          "Perso"
+         ]
+        }
+       }
+      }
+     },
+     {
+      "name": "factures_a_classer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {}
+      }
+     },
+     {
+      "name": "facture_voir",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "nom": {
+         "type": "string",
+         "maxLength": 120
+        },
+        "depense": {
+         "type": "integer",
+         "minimum": 1,
+         "description": "Numéro de la dépense (voir finances_depenses)."
+        }
+       }
+      }
+     },
+     {
+      "name": "points_japon",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "historique": {
+         "type": "boolean"
+        }
+       }
+      }
+     },
+     {
+      "name": "budget_etat",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "annee"
+       ],
+       "properties": {
+        "annee": {
+         "type": "integer",
+         "minimum": 2026,
+         "maximum": 2100
+        },
+        "mois": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 12
+        },
+        "historique": {
+         "type": "boolean"
+        }
+       }
+      }
+     },
+     {
+      "name": "finances_historique",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "nombre": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 100
+        }
+       }
+      }
+     },
+     {
+      "name": "regles_affaires",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {}
+      }
+     },
+     {
+      "name": "depense_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "date",
+        "montant",
+        "categorie"
+       ],
+       "properties": {
+        "date": {
+         "type": "string"
+        },
+        "montant": {
+         "type": "number",
+         "exclusiveMinimum": 0,
+         "maximum": 100000
+        },
+        "categorie": {
+         "type": "string"
+        },
+        "pourcentage": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 100
+        },
+        "fournisseur": {
+         "type": "string",
+         "maxLength": 200
+        },
+        "description": {
+         "type": "string",
+         "maxLength": 200
+        },
+        "mode": {
+         "type": "string",
+         "enum": [
+          "comptant",
+          "carte",
+          "virement",
+          "cheque"
+         ]
+        },
+        "piece": {
+         "type": "string",
+         "maxLength": 200
+        },
+        "facture": {
+         "type": "string",
+         "maxLength": 120
+        }
+       }
+      }
+     },
+     {
+      "name": "depense_completer_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "id"
+       ],
+       "properties": {
+        "id": {
+         "type": "integer",
+         "minimum": 1,
+         "description": "Numéro de la dépense (voir finances_depenses)."
+        },
+        "fournisseur": {
+         "type": "string",
+         "maxLength": 200
+        },
+        "description": {
+         "type": "string",
+         "maxLength": 200
+        },
+        "mode": {
+         "type": "string",
+         "enum": [
+          "comptant",
+          "carte",
+          "virement",
+          "cheque"
+         ]
+        },
+        "piece": {
+         "type": "string",
+         "maxLength": 200
+        },
+        "facture": {
+         "type": "string",
+         "maxLength": 120
+        }
+       }
+      }
+     },
+     {
+      "name": "depense_annulation_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "id"
+       ],
+       "properties": {
+        "id": {
+         "type": "integer",
+         "minimum": 1,
+         "description": "Numéro de la dépense (voir finances_depenses)."
+        }
+       }
+      }
+     },
+     {
+      "name": "revenu_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "date",
+        "montant",
+        "type"
+       ],
+       "properties": {
+        "date": {
+         "type": "string"
+        },
+        "montant": {
+         "type": "number",
+         "exclusiveMinimum": 0,
+         "maximum": 100000
+        },
+        "type": {
+         "type": "string",
+         "enum": [
+          "abonnement",
+          "equipement",
+          "kimono",
+          "guide",
+          "passage",
+          "autre"
+         ]
+        },
+        "mode": {
+         "type": "string",
+         "enum": [
+          "comptant",
+          "carte",
+          "virement",
+          "cheque"
+         ]
+        },
+        "description": {
+         "type": "string",
+         "maxLength": 200
+        }
+       }
+      }
+     },
+     {
+      "name": "revenu_annulation_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "id"
+       ],
+       "properties": {
+        "id": {
+         "type": "integer",
+         "minimum": 1,
+         "description": "Numéro du revenu (voir finances_revenus)."
+        }
+       }
+      }
+     },
+     {
+      "name": "releve_import_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "fichier"
+       ],
+       "properties": {
+        "fichier": {
+         "type": "string",
+         "maxLength": 100
+        },
+        "comptes": {
+         "type": "object",
+         "additionalProperties": {
+          "type": "string",
+          "enum": [
+           "Dojo",
+           "Perso",
+           "ignore",
+           "additionnel",
+           "remplace"
+          ]
+         },
+         "maxProperties": 10
+        }
+       }
+      }
+     },
+     {
+      "name": "operation_classer_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "id",
+        "categorie"
+       ],
+       "properties": {
+        "id": {
+         "type": "integer",
+         "minimum": 1,
+         "description": "Numéro de l'opération (banque_a_classer)."
+        },
+        "categorie": {
+         "type": "string",
+         "maxLength": 40
+        },
+        "pourcentage": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 100,
+         "description": "Pourcentage déductible, seulement pour une dépense du dojo (requis pour 9281)."
+        }
+       }
+      }
+     },
+     {
+      "name": "regle_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "motif",
+        "categorie"
+       ],
+       "properties": {
+        "motif": {
+         "type": "string",
+         "minLength": 3,
+         "maxLength": 60
+        },
+        "categorie": {
+         "type": "string",
+         "maxLength": 40
+        },
+        "pourcentage": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 100,
+         "description": "Pourcentage déductible, seulement pour une dépense du dojo (requis pour 9281)."
+        }
+       }
+      }
+     },
+     {
+      "name": "regle_retirer_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "id"
+       ],
+       "properties": {
+        "id": {
+         "type": "integer",
+         "minimum": 1
+        }
+       }
+      }
+     },
+     {
+      "name": "objectif_points_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "cible"
+       ],
+       "properties": {
+        "cible": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 10000000
+        },
+        "date_visee": {
+         "type": "string",
+         "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        }
+       }
+      }
+     },
+     {
+      "name": "objectif_points_retirer_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [],
+       "properties": {}
+      }
+     },
+     {
+      "name": "budget_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "categorie",
+        "montant"
+       ],
+       "properties": {
+        "categorie": {
+         "type": "string",
+         "enum": [
+          "logement",
+          "epicerie",
+          "restaurants",
+          "transport",
+          "sante",
+          "assurances",
+          "telecom",
+          "loisirs",
+          "vetements",
+          "cadeaux",
+          "frais_bancaires"
+         ]
+        },
+        "montant": {
+         "type": "number",
+         "exclusiveMinimum": 0,
+         "maximum": 100000
+        },
+        "debut": {
+         "type": "string",
+         "pattern": "^[0-9]{4}-[0-9]{2}$"
+        }
+       }
+      }
+     },
+     {
+      "name": "budget_retirer_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "categorie"
+       ],
+       "properties": {
+        "categorie": {
+         "type": "string",
+         "enum": [
+          "logement",
+          "epicerie",
+          "restaurants",
+          "transport",
+          "sante",
+          "assurances",
+          "telecom",
+          "loisirs",
+          "vetements",
+          "cadeaux",
+          "frais_bancaires"
+         ]
+        },
+        "debut": {
+         "type": "string",
+         "pattern": "^[0-9]{4}-[0-9]{2}$"
+        }
+       }
+      }
+     },
+     {
+      "name": "finances_lot_voir",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {}
+      }
+     },
+     {
+      "name": "finances_lot_retirer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "numero"
+       ],
+       "properties": {
+        "numero": {
+         "type": "integer",
+         "minimum": 1
+        }
+       }
+      }
+     },
+     {
+      "name": "finances_lot_vider",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {}
+      }
+     },
+     {
+      "name": "finances_lot_preparer",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {}
+      }
+     },
+     {
+      "name": "WR_SAVE_FINANCES_BD",
+      "inputSchema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "code"
+       ],
+       "properties": {
+        "code": {
+         "type": "string",
+         "description": "Code retourné par finances_lot_preparer."
+        }
+       }
+      }
+     }
+    ]
+   }
+  }
+ ]
+}

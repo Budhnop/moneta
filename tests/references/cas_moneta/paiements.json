@@ -1,0 +1,120 @@
+{
+ "source": "f9c1599",
+ "famille": "paiements",
+ "cas": [
+  {
+   "nom": "totaux_annee / 2029",
+   "entree": {
+    "today": "2030-06-15",
+    "fonction": "totaux_annee",
+    "annee": 2029
+   },
+   "attendu": [
+    {
+     "comptant": 0,
+     "virement": 2000,
+     "non_precise": 0
+    },
+    {
+     "comptant": 0,
+     "virement": 1,
+     "non_precise": 0
+    }
+   ]
+  },
+  {
+   "nom": "totaux_annee / 2030",
+   "entree": {
+    "today": "2030-06-15",
+    "fonction": "totaux_annee",
+    "annee": 2030
+   },
+   "attendu": [
+    {
+     "comptant": 1234,
+     "virement": 268,
+     "non_precise": 625
+    },
+    {
+     "comptant": 1,
+     "virement": 1,
+     "non_precise": 3
+    }
+   ]
+  },
+  {
+   "nom": "totaux_annee / 2031",
+   "entree": {
+    "today": "2030-06-15",
+    "fonction": "totaux_annee",
+    "annee": 2031
+   },
+   "attendu": [
+    {
+     "comptant": 0,
+     "virement": 0,
+     "non_precise": 0
+    },
+    {
+     "comptant": 0,
+     "virement": 0,
+     "non_precise": 0
+    }
+   ]
+  },
+  {
+   "nom": "lignes_annee / 2029",
+   "entree": {
+    "today": "2030-06-15",
+    "fonction": "lignes_annee",
+    "annee": 2029
+   },
+   "attendu": [
+    [
+     "2029-12-31",
+     "Famille Exemple",
+     2000
+    ]
+   ]
+  },
+  {
+   "nom": "lignes_annee / 2030",
+   "entree": {
+    "today": "2030-06-15",
+    "fonction": "lignes_annee",
+    "annee": 2030
+   },
+   "attendu": [
+    [
+     "2030-05-02",
+     "Famille Exemple",
+     268
+    ],
+    [
+     "2030-05-02",
+     "Famille Exemple",
+     123
+    ],
+    [
+     "2030-05-03",
+     "Famille Exemple",
+     2
+    ],
+    [
+     "2030-05-04",
+     "Famille Exemple",
+     500
+    ]
+   ]
+  },
+  {
+   "nom": "lignes_annee / 2031",
+   "entree": {
+    "today": "2030-06-15",
+    "fonction": "lignes_annee",
+    "annee": 2031
+   },
+   "attendu": []
+  }
+ ]
+}

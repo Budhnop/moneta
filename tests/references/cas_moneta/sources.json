@@ -1,0 +1,156 @@
+{
+ "source": "f9c1599",
+ "famille": "sources",
+ "cas": [
+  {
+   "nom": "revenus_dojo_annee",
+   "entree": {
+    "today": "2030-06-15",
+    "source": "revenus_dojo_annee"
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "date",
+     "description",
+     "montant"
+    ],
+    "lignes": [
+     [
+      "2030-05-01",
+      "Revenu Fictif",
+      12.34
+     ],
+     [
+      "2030-05-01",
+      "Revenu Fictif",
+      34.56
+     ],
+     [
+      "2030-05-02",
+      "Paiement · Famille Exemple",
+      2.68
+     ],
+     [
+      "2030-05-02",
+      "Paiement · Famille Exemple",
+      1.23
+     ],
+     [
+      "2030-05-03",
+      "Paiement · Famille Exemple",
+      0.02
+     ],
+     [
+      "2030-05-04",
+      "Paiement · Famille Exemple",
+      5.0
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "depenses_dojo_annee",
+   "entree": {
+    "today": "2030-06-15",
+    "source": "depenses_dojo_annee"
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "date",
+     "description",
+     "montant"
+    ],
+    "lignes": [
+     [
+      "2030-05-02",
+      "Repas fictif",
+      85.25
+     ],
+     [
+      "2030-05-03",
+      "",
+      123.45
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "cadran_finances",
+   "entree": {
+    "today": "2030-06-15",
+    "source": "cadran_finances"
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "nom",
+     "fait",
+     "total"
+    ],
+    "lignes": [
+     [
+      "Opérations classées",
+      1,
+      4
+     ],
+     [
+      "Factures à classer",
+      1,
+      null
+     ],
+     [
+      "Relevés reçus",
+      4,
+      null
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "points_solde",
+   "entree": {
+    "today": "2030-06-15",
+    "source": "points_solde"
+   },
+   "attendu": {
+    "type": "nombre",
+    "valeur": 14000
+   }
+  },
+  {
+   "nom": "points_objectif",
+   "entree": {
+    "today": "2030-06-15",
+    "source": "points_objectif"
+   },
+   "attendu": {
+    "type": "nombre",
+    "valeur": 120000
+   }
+  },
+  {
+   "nom": "revenus_dojo_annee_total",
+   "entree": {
+    "today": "2030-06-15",
+    "source": "revenus_dojo_annee_total"
+   },
+   "attendu": {
+    "type": "nombre",
+    "valeur": 55.83
+   }
+  },
+  {
+   "nom": "depenses_dojo_annee_total",
+   "entree": {
+    "today": "2030-06-15",
+    "source": "depenses_dojo_annee_total"
+   },
+   "attendu": {
+    "type": "nombre",
+    "valeur": 208.7
+   }
+  }
+ ]
+}
