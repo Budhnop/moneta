@@ -379,7 +379,7 @@ class TestEchecs(Base):
                 self.assertNotIn('remise', appels[:rang + 1])
                 try:
                     avant()
-                except AssertionError:
+                except (AssertionError, FileNotFoundError):  # un fichier absent de sa place d'avant : ce doit être fait
                     fait()
 
     def test_aller(self):
@@ -488,9 +488,11 @@ class TestHorsDePortee(unittest.TestCase):
 
     def test_aucun_appel_a_git(self):
         source = (ROOT / 'moneta' / 'scripts' / 'demenager.py').read_text(encoding='utf-8')
+        # Le commit se lit dans les fichiers du dépôt (.git est permis); aucune commande git, nommée ou par son chemin.
         for noeud in ast.walk(ast.parse(source)):
             if isinstance(noeud, ast.Constant) and isinstance(noeud.value, str):
-                self.assertFalse(noeud.value.strip().split(' ')[0].endswith('git'), noeud.value)
+                mot = noeud.value.strip().split(' ')[0]
+                self.assertFalse(mot == 'git' or mot.endswith('/git'), noeud.value)
         self.assertNotIn('git', (ROOT / 'bin' / 'moneta-demenager').read_text(encoding='utf-8').replace('.git', ''))
 
 

@@ -58,6 +58,18 @@ INVENTAIRE = {
     # Le monde de bin/moneta-mcp --fictif, dans un dossier temporaire.
     ('moneta/scripts/moneta_mcp.py', 'serveur_fictif'): 'fictif',
     ('moneta/scripts/moneta_mcp.py', 'main'): 'fictif',
+    # bin/moneta-demenager, lancé par Ugo dans le terminal (T062) : il déplace des fichiers entre donnees/smith/, donnees/moneta/
+    # et le journal commun, jamais ailleurs; --repeter travaille sur un dossier fictif et des copies temporaires.
+    ('moneta/scripts/demenager.py', '_creer'): 'déménagement',
+    ('moneta/scripts/demenager.py', '_deplacer'): 'déménagement',
+    ('moneta/scripts/demenager.py', 'renommer'): 'déménagement',
+    ('moneta/scripts/demenager.py', '_remettre'): 'déménagement',
+    ('moneta/scripts/demenager.py', '_repeter_refus'): 'fictif',
+    ('moneta/scripts/demenager.py', 'essai'): 'fictif',
+    ('moneta/scripts/demenager.py', 'sans_derniere_migration'): 'fictif',
+    ('moneta/scripts/demenager.py', '_repeter_echecs'): 'fictif',
+    ('moneta/scripts/demenager.py', 'copie'): 'fictif',
+    ('moneta/scripts/demenager.py', '_ecriture_fictive'): 'fictif',
     # bin/moneta-socle-epingler, lancé à la main : il remplace socle/ dans le dépôt de Moneta lui-même.
     ('moneta/scripts/socle_epingler.py', 'extraire'): 'dépôt',
     ('moneta/scripts/socle_epingler.py', 'epingler'): 'dépôt',

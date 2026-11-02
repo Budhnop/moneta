@@ -3,7 +3,9 @@
 Tout moneta/ et bin/ : aucun import hors de la bibliothèque standard, de moneta et du socle (donc ni core, ni agents, ni scripts,
 ni aucun module de Smith); aucun chemin vers dojo.db, donnees/smith ou le dépôt de Smith; aucune variable UGOD_DB; aucune requête
 SQL vers une table de Dojo. Les tables visées viennent des migrations de Dojo de Smith (tests/outils_tests.dojo_migre), moins
-celles de Finances. Seule exception : la constante PROGRAMME de moneta/lecture_dojo.py, le programme fermé de Smith.
+celles de Finances. Exceptions : la constante PROGRAMME de moneta/lecture_dojo.py, le programme fermé de Smith; et les chemins de
+Smith de moneta/scripts/demenager.py (T062), qui déplace par nature les fichiers de donnees/smith/ et lit le commit de Smith dans
+son dépôt (contrat demenagement). Même là, aucun import de Smith, aucun dojo.db, aucune requête vers une table de Dojo.
 """
 import ast
 from contextlib import closing
@@ -21,6 +23,8 @@ from socle.migrations import migrate
 ROOT = Path(__file__).resolve().parents[1]
 PERMIS = {'moneta', 'socle'}
 EXCEPTION = ('moneta/lecture_dojo.py', 'PROGRAMME')
+DEMENAGEMENT = 'moneta/scripts/demenager.py'
+CHEMINS_DE_SMITH = ('chaîne donnees/smith', 'chemin de Smith ')
 CHAINES = ('donnees/smith', 'UGOD_DB')
 # Un segment de chemin du dépôt de Smith : « smith » seul, ou son code « assistant ».
 SMITH = re.compile(r'(^|/)(smith|assistant)(/|$)')
@@ -73,6 +77,12 @@ def exception(arbre, nom):
     affectations = [n for n in arbre.body if isinstance(n, ast.Assign)
                     and [getattr(c, 'id', None) for c in n.targets] == [EXCEPTION[1]]]
     return {id(n) for a in affectations[:1] for n in ast.walk(a.value)}
+
+
+def permis_au_demenagement(violation):
+    """Vrai pour un chemin de Smith dans demenager.py seulement."""
+    fichier, _, quoi = violation.partition(' : ')
+    return fichier == DEMENAGEMENT and quoi.startswith(CHEMINS_DE_SMITH)
 
 
 def requetes(visees):
@@ -153,8 +163,18 @@ class TestFrontiere(unittest.TestCase):
 
     def test_moneta_ne_connait_pas_smith(self):
         violations = [v for c in fichiers()
-                      for v in analyser(c.read_text(encoding='utf-8'), str(c.relative_to(ROOT)), self.visees)]
+                      for v in analyser(c.read_text(encoding='utf-8'), str(c.relative_to(ROOT)), self.visees)
+                      if not permis_au_demenagement(v)]
         self.assertEqual(violations, [])
+
+    def test_le_demenagement_ne_permet_que_les_chemins(self):
+        texte = (ROOT / DEMENAGEMENT).read_text(encoding='utf-8')
+        self.assertTrue(any(permis_au_demenagement(v) for v in analyser(texte, DEMENAGEMENT, self.visees)))
+        for ajout in ("from core.paths import dojo_db\n", "p = home() / 'database' / 'dojo.db'\n",
+                      "q = 'SELECT * FROM familles'\n", "v = 'UGOD_DB'\n"):
+            with self.subTest(ajout=ajout):
+                self.assertTrue([v for v in analyser(texte + ajout, DEMENAGEMENT, self.visees) if not permis_au_demenagement(v)])
+        self.assertFalse(permis_au_demenagement("moneta/autre.py : chaîne donnees/smith"))
 
     def test_l_exception_est_seulement_la_constante(self):
         texte = (ROOT / EXCEPTION[0]).read_text(encoding='utf-8')
