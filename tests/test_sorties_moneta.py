@@ -15,9 +15,9 @@ Les écritures du socle (journal commun, signal du texte d'autrui, copies privé
 import ast
 from datetime import date
 import hashlib
-import importlib.util
 import os
 from pathlib import Path
+import shutil
 import sys
 import tempfile
 import unittest
@@ -31,10 +31,13 @@ confirmation.AUTOMATIC = True  # données fictives seulement : aucune fenêtre s
 
 ROOT = Path(__file__).resolve().parents[1]
 FACTURES = 'moneta/outils/factures.py'
-PORTES = {(FACTURES, 'deposer'), (FACTURES, 'move_all'), ('moneta/scripts/sauvegarde_quotidienne.py', 'offsite')}
+NUIT = 'moneta/scripts/sauvegarde_quotidienne.py'
+PORTES = {(FACTURES, 'deposer'), (FACTURES, 'move_all'), (NUIT, 'offsite')}
 # Les aides des portes vers Drive : chacune n'est appelée que par ses portes.
 AIDES = {(FACTURES, '_year'): {(FACTURES, 'move_all')},
-         (FACTURES, 'undo'): {(FACTURES, 'move_all'), ('moneta/outils/lot.py', 'undo')}}
+         (FACTURES, 'undo'): {(FACTURES, 'move_all'), ('moneta/outils/lot.py', 'undo')},
+         # La rétention des images de la nuit, à la destination de Drive et sur le disque : celles de Moneta seulement.
+         (NUIT, 'prune_images'): {(NUIT, 'retention'), (NUIT, 'to_disk')}}
 INVENTAIRE = {
     # Le dossier de données (MONETA_HOME) : la base, et les rapports dans exports/.
     ('moneta/finances/finances.py', 'connect'): 'données',
@@ -43,6 +46,18 @@ INVENTAIRE = {
     ('moneta/chemins.py', 'factures_import'): 'données',
     ('moneta/outils/serveur.py', '__init__'): 'données',
     ('moneta/outils/serveur.py', 'deposit_receipt'): 'données',
+    # La nuit (T064) : copie locale, journal, registre des pièces et rétention des copies, dans le dossier de données.
+    ('moneta/scripts/sauvegarde_quotidienne.py', 'local_copies'): 'données',
+    ('moneta/scripts/sauvegarde_quotidienne.py', 'remove_leftovers'): 'données',
+    ('moneta/scripts/sauvegarde_quotidienne.py', 'prune_daily'): 'données',
+    ('moneta/scripts/sauvegarde_quotidienne.py', 'prune_copies'): 'données',
+    ('moneta/scripts/sauvegarde_quotidienne.py', 'log_path'): 'données',
+    ('moneta/scripts/sauvegarde_quotidienne.py', 'log'): 'données',
+    ('moneta/scripts/sauvegarde_quotidienne.py', 'registry'): 'données',
+    ('moneta/scripts/sauvegarde_quotidienne.py', 'save_registry'): 'données',
+    # Le contenu de l'image, préparé dans un dossier temporaire avant d'être chiffré (socle.offsite_backup.create_backup).
+    ('moneta/scripts/sauvegarde_quotidienne.py', 'stage'): 'temporaire',
+    ('moneta/outils/csv_export.py', 'export_csv'): 'temporaire',
     # Le dossier temporaire du Mac, effacé en sortie (copies privées pour sips et le lecteur de relevés).
     (FACTURES, 'preview'): 'temporaire',
     (FACTURES, '_private_copy'): 'temporaire',
@@ -55,6 +70,7 @@ INVENTAIRE = {
     (FACTURES, 'move_all'): 'Drive',
     (FACTURES, '_year'): 'Drive',
     (FACTURES, 'undo'): 'Drive',
+    (NUIT, 'prune_images'): 'Drive',
     # Le monde de bin/moneta-mcp --fictif, dans un dossier temporaire.
     ('moneta/scripts/moneta_mcp.py', 'serveur_fictif'): 'fictif',
     ('moneta/scripts/moneta_mcp.py', 'main'): 'fictif',
@@ -177,9 +193,10 @@ class TestInventaire(unittest.TestCase):
             with self.subTest(aide=aide):
                 appelants = set().union(*(appels(s, f, {aide}) for f, s in sources.items()))
                 self.assertLessEqual(appelants, permis)
-        # Le Drive ne s'atteint que par chemins.drive() : depuis factures, et dans la déclaration qui le nomme au socle.
+        # Le Drive ne s'atteint que par chemins.drive() : depuis factures, dans la déclaration qui le nomme au socle, et dans la
+        # nuit, qui refuse un disque placé dans un dossier synchronisé (socle.offsite_backup.check_disk).
         lecteurs = {f for f, s in sources.items() if appels(s, f, {'drive'}) and f != 'moneta/chemins.py'}
-        self.assertEqual(lecteurs, {FACTURES, 'moneta/declaration.py'})
+        self.assertEqual(lecteurs, {FACTURES, 'moneta/declaration.py', NUIT})
 
     def test_violations_plantees(self):
         for source in ("def f(p):\n    p.write_text('x')\n", "def f(p):\n    open(p, 'w').write('x')\n",
@@ -260,7 +277,9 @@ class TestParcours(unittest.TestCase):
         self.assertTrue(rapport.is_file())
         if nuit:
             from moneta.scripts import sauvegarde_quotidienne
-            sauvegarde_quotidienne.offsite(destination=self.drive / 'DojoD' / '05 Administration' / 'Sauvegardes')
+            # Phrase de passe fictive : un test ne lit jamais le trousseau.
+            with patch.object(sauvegarde_quotidienne, 'keychain_passphrase', return_value='phrase-de-test-fictive'):
+                sauvegarde_quotidienne.offsite(destination=self.drive / 'DojoD' / '05 Administration' / 'Sauvegardes')
 
         apres = instantane(self.monde)
         changes = {c for c in set(avant) | set(apres) if avant.get(c, 0) != apres.get(c, 0)}
@@ -277,8 +296,7 @@ class TestParcours(unittest.TestCase):
     def test_depot_classement_et_rapport_ne_changent_que_leurs_sorties(self):
         self.parcours(nuit=False)
 
-    @unittest.skipUnless(importlib.util.find_spec('moneta.scripts.sauvegarde_quotidienne'),
-                         'la nuit de Moneta arrive à T064 (moneta/scripts/sauvegarde_quotidienne.py)')
+    @unittest.skipUnless(sys.platform == 'darwin' and shutil.which('hdiutil'), 'hdiutil requis')
     def test_avec_la_nuit(self):
         self.parcours(nuit=True)
 

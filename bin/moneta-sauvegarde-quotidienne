@@ -1,0 +1,5 @@
+#!/bin/zsh
+# moneta-sauvegarde-quotidienne : voir moneta/scripts/sauvegarde_quotidienne.py. Lancé par la tâche ca.dojod.moneta.sauvegarde.
+set -eu
+ROOT="${0:A:h:h}"
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$ROOT" exec "$ROOT/.venv/bin/python" "$ROOT/moneta/scripts/sauvegarde_quotidienne.py" "$@"

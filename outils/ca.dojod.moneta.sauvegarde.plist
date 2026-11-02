@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Modèle de la tâche de nuit de Moneta (spec 013 de Smith, T064, R10) : jamais installé par le code. À la mise en service, Ugo
+     règle les deux destinations, crée la phrase de passe (security add-generic-password -s ca.dojod.moneta.sauvegarde -a "$USER" -w),
+     copie ce fichier dans ~/Library/LaunchAgents et le charge. 21 h 15 : quinze minutes après la nuit de Smith (21 h). -->
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>ca.dojod.moneta.sauvegarde</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/ugod/_PersonalAgents/moneta/bin/moneta-sauvegarde-quotidienne</string>
+	</array>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>MONETA_SAUVEGARDE_DESTINATION</key>
+		<string>À RÉGLER : le dossier des sauvegardes de Moneta dans Google Drive</string>
+		<key>MONETA_SAUVEGARDE_DISQUE</key>
+		<string>À RÉGLER : /Volumes/PRO-HD1/00_BackupSmith/Moneta</string>
+	</dict>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Hour</key>
+		<integer>21</integer>
+		<key>Minute</key>
+		<integer>15</integer>
+	</dict>
+	<key>StandardOutPath</key>
+	<string>/dev/null</string>
+	<key>StandardErrorPath</key>
+	<string>/dev/null</string>
+</dict>
+</plist>

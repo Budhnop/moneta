@@ -116,6 +116,11 @@ def _read(folder_fd, name, label):
         return handle.read(MAX_BYTES + 1)
 
 
+def dossier_factures():
+    """The receipts' folder of the Drive, every year in it: the pieces of the night's image (scripts.sauvegarde_quotidienne)."""
+    return drive().joinpath(*Path(FOLDER).parts)
+
+
 def inbox_present():
     """True when the inbox is a real folder of the Drive, not a link (moneta-verifier; its name only, nothing read in it)."""
     folder = drive().joinpath(*Path(INBOX).parts)
