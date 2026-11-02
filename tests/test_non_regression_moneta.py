@@ -1,4 +1,4 @@
-"""Spec 013 T038 : rejoue sur Moneta les cas capturés sur Smith f9c1599 (tests/references/cas_moneta, copiés tels quels), sans
+"""Spec 013 T038 : rejoue sur Moneta les cas capturés sur Smith f9c1599 (tests/references/cas_moneta, seul cadran_moneta renommé), sans
 ancien code ni régénération des JSON. Mêmes chiffres, mêmes résultats, mêmes lignes en base (récit 2.1 à 2.4, CS-003).
 
 Deux parties restent chez Smith et y sont rejouées : l'outil regles_affaires (les règles d'affaires sont à Agent Smith) et la liste
@@ -27,7 +27,7 @@ ATTENDUS = {
                   'revenu_annulation_preparer', 'releve_import_preparer', 'operation_classer_preparer', 'regle_preparer',
                   'regle_retirer_preparer', 'objectif_points_preparer', 'objectif_points_retirer_preparer',
                   'budget_preparer', 'budget_retirer_preparer', 'lot combine', 'plafond fenetre', 'facture liee'),
-    'sources': ('revenus_dojo_annee', 'depenses_dojo_annee', 'cadran_finances', 'points_solde', 'points_objectif',
+    'sources': ('revenus_dojo_annee', 'depenses_dojo_annee', 'cadran_moneta', 'points_solde', 'points_objectif',
                 'revenus_dojo_annee_total', 'depenses_dojo_annee_total'),
     'paiements': tuple(f'{fonction} / {annee}' for fonction in ('totaux_annee', 'lignes_annee') for annee in (2029, 2030, 2031)),
     'rapports': ('sans comptant', 'avec comptant'), 'catalogue': ('tools/list',),

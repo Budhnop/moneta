@@ -82,7 +82,7 @@ def releves_recus():
                    for c in comptes for sql in (PERIODES_PDF, PERIODES_OFX)), None
 
 
-def cadran_finances(today):
+def cadran_moneta(today):
     return lire_anneaux((('Opérations classées', lambda: operations_classees(today)),
                         ('Factures à classer', lambda: (len(inbox()), None)), ('Relevés reçus', releves_recus)))
 
@@ -90,7 +90,7 @@ def cadran_finances(today):
 LECTURES = {
     'revenus_dojo_annee': lambda today: detail_annee(today, 'revenus'),
     'depenses_dojo_annee': lambda today: detail_annee(today, 'depenses'),
-    'cadran_finances': cadran_finances,
+    'cadran_moneta': cadran_moneta,
     'points_solde': lambda today: points('solde', 'aucun relevé Cobalt'),
     'points_objectif': lambda today: points('objectif', 'aucun objectif'),
     'revenus_dojo_annee_total': revenus,

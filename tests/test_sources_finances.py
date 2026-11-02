@@ -96,11 +96,11 @@ class TestCadrans(unittest.TestCase):
             con.executescript("CREATE TABLE operations(id, date, classe, compte_bancaire_id, import_id, categorie_perso_id, depense_id); INSERT INTO operations(id, date, classe, compte_bancaire_id, import_id) VALUES (1, '2026-01-01', NULL, 1, 1), (2, '2026-02-01', 'CANARI', 1, 1), (3, '2025-01-01', NULL, 1, 1); CREATE TABLE categories_perso(id); CREATE TABLE depenses(id, categorie_id); CREATE TABLE categories(id); CREATE TABLE comptes(id); INSERT INTO comptes VALUES (1); CREATE TABLE comptes_bancaires(id, compte_id); INSERT INTO comptes_bancaires VALUES (1, 1); CREATE TABLE imports(id, du, au, format); INSERT INTO imports VALUES (1, '2026-01-01', '2026-02-01', 'ofx'); CREATE TABLE soldes_releves(compte_bancaire_id, du, au, solde_debut_cents, solde_fin_cents); INSERT INTO soldes_releves VALUES (1, '2026-02-02', '2026-03-01', 0, 0);")
             return con
         with patch.object(finances, 'connect', side_effect=connexion), patch.object(finances, 'inbox', return_value=['CANARI'] * 3):
-            valeur = finances.cadran_finances(JOUR)
+            valeur = finances.cadran_moneta(JOUR)
             self.verifier(valeur)
             self.assertEqual([l[1:] for l in valeur['lignes']], [[1, 2], [3, None], [2, None]])
             with patch.object(finances, 'inbox', side_effect=ValueError('CANARI')):
-                valeur = finances.cadran_finances(JOUR)
+                valeur = finances.cadran_moneta(JOUR)
                 self.verifier(valeur)
                 self.assertEqual([l[1:] for l in valeur['lignes']], [[1, 2], [None, None], [2, None]])
 

@@ -40,6 +40,9 @@ INVENTAIRE = {
     ('moneta/finances/finances.py', 'connect'): 'données',
     ('moneta/outils/rapport.py', 'write_report'): 'données',
     ('moneta/scripts/migrer.py', 'main'): 'données',
+    ('moneta/chemins.py', 'factures_import'): 'données',
+    ('moneta/outils/serveur.py', '__init__'): 'données',
+    ('moneta/outils/serveur.py', 'deposit_receipt'): 'données',
     # Le dossier temporaire du Mac, effacé en sortie (copies privées pour sips et le lecteur de relevés).
     (FACTURES, 'preview'): 'temporaire',
     (FACTURES, '_private_copy'): 'temporaire',

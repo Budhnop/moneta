@@ -1,7 +1,7 @@
 {
   "schema": 2,
-  "id": "finances",
-  "nom": "Finances",
+  "id": "moneta",
+  "nom": "Moneta",
   "role": "Tous les comptes",
   "statut": "en construction",
   "icone": "argent",

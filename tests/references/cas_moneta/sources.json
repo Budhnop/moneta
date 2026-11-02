@@ -77,10 +77,10 @@
    }
   },
   {
-   "nom": "cadran_finances",
+   "nom": "cadran_moneta",
    "entree": {
     "today": "2030-06-15",
-    "source": "cadran_finances"
+    "source": "cadran_moneta"
    },
    "attendu": {
     "type": "liste",

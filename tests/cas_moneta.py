@@ -253,7 +253,7 @@ def cas_ecritures():
 
 def cas_sources():
     return [(nom, {'today': JOUR, 'source': nom}) for nom in (
-        'revenus_dojo_annee', 'depenses_dojo_annee', 'cadran_finances', 'points_solde', 'points_objectif',
+        'revenus_dojo_annee', 'depenses_dojo_annee', 'cadran_moneta', 'points_solde', 'points_objectif',
         'revenus_dojo_annee_total', 'depenses_dojo_annee_total')]
 
 

@@ -78,3 +78,7 @@ def drive():
     """Le Google Drive d'Ugo, par le dossier que l'app Drive garde synchronisé sur le Mac (MONETA_DRIVE_DOSSIER pour les tests)."""
     return Path(os.environ.get("MONETA_DRIVE_DOSSIER")
                 or Path.home() / "Library/CloudStorage/GoogleDrive-ugo@dojod.ca/My Drive").expanduser()
+
+
+def factures_import():
+    return private_folder(home() / "private" / "app" / "factures")
