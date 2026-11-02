@@ -1,0 +1,6 @@
+#!/bin/zsh
+# Moneta pour Claude Desktop : lectures de Finances, et le lot Finances avec --ecriture (fenêtre du Mac ou go, comme Smith).
+# --fictif : base synthétique temporaire. Le Python est celui du dépôt, par son chemin complet.
+set -eu
+ROOT="${0:A:h:h}"
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$ROOT" exec "$ROOT/.venv/bin/python" "$ROOT/moneta/scripts/moneta_mcp.py" "$@"
