@@ -1,0 +1,6 @@
+#!/bin/zsh
+# Toute la suite de Moneta, chaque fichier dans son propre monde fictif (MONETA_HOME temporaire).
+set -eu
+ROOT="${0:A:h:h}"
+cd "$ROOT"
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$ROOT" exec "$ROOT/.venv/bin/python" tests/run_all.py "$@"

@@ -1,0 +1,6 @@
+#!/bin/zsh
+# Change la version du socle de Moneta : remplace socle/ et son épingle par un tag (ou --branche X.Y) du dépôt socle. Ne committe pas.
+set -eu
+ROOT="${0:A:h:h}"
+cd "$ROOT"
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$ROOT" exec "$ROOT/.venv/bin/python" -m moneta.scripts.socle_epingler "$@"

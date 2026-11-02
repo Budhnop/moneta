@@ -1,0 +1,11 @@
+# Environnement Python, jamais commité
+.venv/
+__pycache__/
+*.pyc
+# Aucune donnée dans le dépôt : elles vivent dans ~/_PersonalAgents/donnees/moneta (R6)
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+donnees/
+.DS_Store
