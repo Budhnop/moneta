@@ -1,0 +1,5 @@
+#!/bin/zsh
+# moneta-migrer : voir moneta/scripts/migrer.py. Le Python est celui du dépôt, par son chemin complet.
+set -eu
+ROOT="${0:A:h:h}"
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$ROOT" exec "$ROOT/.venv/bin/python" "$ROOT/moneta/scripts/migrer.py" "$@"
