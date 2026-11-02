@@ -1,0 +1,519 @@
+{
+ "source": "3351db7",
+ "famille": "detail_annee",
+ "cas": [
+  {
+   "nom": "comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      "comptant"
+     ]
+    ]
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "date",
+     "description",
+     "montant"
+    ],
+    "lignes": []
+   }
+  },
+  {
+   "nom": "virement",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      "virement"
+     ]
+    ]
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "date",
+     "description",
+     "montant"
+    ],
+    "lignes": [
+     [
+      "2030-01-01",
+      "Paiement · Famille Exemple",
+      12.34
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "sans mode",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      null
+     ]
+    ]
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "date",
+     "description",
+     "montant"
+    ],
+    "lignes": [
+     [
+      "2030-01-01",
+      "Paiement · Famille Exemple",
+      12.34
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "mode inconnu",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      "troc"
+     ]
+    ]
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "date",
+     "description",
+     "montant"
+    ],
+    "lignes": [
+     [
+      "2030-01-01",
+      "Paiement · Famille Exemple",
+      12.34
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "mode vide",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      ""
+     ]
+    ]
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "date",
+     "description",
+     "montant"
+    ],
+    "lignes": [
+     [
+      "2030-01-01",
+      "Paiement · Famille Exemple",
+      12.34
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "fractions et deux annees",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-03-01",
+      1.005,
+      "comptant"
+     ],
+     [
+      2,
+      "2030-01-01",
+      2.675,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      0.005,
+      null
+     ],
+     [
+      2,
+      "2030-01-01",
+      0.015,
+      "troc"
+     ],
+     [
+      1,
+      "2029-12-31",
+      19.995,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      1.225,
+      "virement"
+     ]
+    ],
+    "autres": [
+     [
+      "2030-01-01",
+      123,
+      "virement",
+      "Revenu fictif"
+     ],
+     [
+      "2030-01-01",
+      234,
+      "comptant",
+      "Vente fictive"
+     ]
+    ]
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "date",
+     "description",
+     "montant"
+    ],
+    "lignes": [
+     [
+      "2030-01-01",
+      "Revenu fictif",
+      1.23
+     ],
+     [
+      "2030-01-01",
+      "Paiement · Famille Fictive",
+      2.68
+     ],
+     [
+      "2030-01-01",
+      "Paiement · Famille Exemple",
+      0.0
+     ],
+     [
+      "2030-01-01",
+      "Paiement · Famille Fictive",
+      0.02
+     ],
+     [
+      "2030-01-01",
+      "Paiement · Famille Exemple",
+      1.23
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "annee precedente",
+   "entree": {
+    "today": "2029-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-03-01",
+      1.005,
+      "comptant"
+     ],
+     [
+      2,
+      "2030-01-01",
+      2.675,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      0.005,
+      null
+     ],
+     [
+      2,
+      "2030-01-01",
+      0.015,
+      "troc"
+     ],
+     [
+      1,
+      "2029-12-31",
+      19.995,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      1.225,
+      "virement"
+     ]
+    ]
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "date",
+     "description",
+     "montant"
+    ],
+    "lignes": [
+     [
+      "2029-12-31",
+      "Paiement · Famille Exemple",
+      20.0
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "annee sans paiement",
+   "entree": {
+    "today": "2031-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-03-01",
+      1.005,
+      "comptant"
+     ],
+     [
+      2,
+      "2030-01-01",
+      2.675,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      0.005,
+      null
+     ],
+     [
+      2,
+      "2030-01-01",
+      0.015,
+      "troc"
+     ],
+     [
+      1,
+      "2029-12-31",
+      19.995,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      1.225,
+      "virement"
+     ]
+    ]
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "date",
+     "description",
+     "montant"
+    ],
+    "lignes": []
+   }
+  },
+  {
+   "nom": "sans famille",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      999,
+      "2030-01-01",
+      8.005,
+      "virement"
+     ]
+    ]
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "date",
+     "description",
+     "montant"
+    ],
+    "lignes": [
+     [
+      "2030-01-01",
+      "Paiement",
+      8.01
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "sans colonne mode",
+   "entree": {
+    "today": "2030-06-15",
+    "base": "sans_mode",
+    "paiements": [
+     [
+      1,
+      "2030-03-01",
+      1.005,
+      "comptant"
+     ],
+     [
+      2,
+      "2030-01-01",
+      2.675,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      0.005,
+      null
+     ],
+     [
+      2,
+      "2030-01-01",
+      0.015,
+      "troc"
+     ],
+     [
+      1,
+      "2029-12-31",
+      19.995,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      1.225,
+      "virement"
+     ]
+    ]
+   },
+   "attendu": {
+    "type": "liste",
+    "colonnes": [
+     "date",
+     "description",
+     "montant"
+    ],
+    "lignes": [
+     [
+      "2030-01-01",
+      "Paiement · Famille Fictive",
+      2.68
+     ],
+     [
+      "2030-01-01",
+      "Paiement · Famille Exemple",
+      0.0
+     ],
+     [
+      "2030-01-01",
+      "Paiement · Famille Fictive",
+      0.02
+     ],
+     [
+      "2030-01-01",
+      "Paiement · Famille Exemple",
+      1.23
+     ],
+     [
+      "2030-03-01",
+      "Paiement · Famille Exemple",
+      1.0
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "base absente",
+   "entree": {
+    "today": "2030-06-15",
+    "base": "absente"
+   },
+   "attendu": {
+    "exception": "OperationalError"
+   }
+  },
+  {
+   "nom": "base verrouillee",
+   "entree": {
+    "today": "2030-06-15",
+    "base": "verrouillee"
+   },
+   "attendu": {
+    "exception": "OperationalError"
+   }
+  },
+  {
+   "nom": "base sans_table",
+   "entree": {
+    "today": "2030-06-15",
+    "base": "sans_table"
+   },
+   "attendu": {
+    "exception": "OperationalError"
+   }
+  },
+  {
+   "nom": "plus de 10000 paiements",
+   "entree": {
+    "today": "2030-06-15",
+    "nombre": 10001
+   },
+   "attendu": {
+    "type": "liste",
+    "indisponible": "trop de lignes pour le détail annuel"
+   }
+  },
+  {
+   "nom": "plus de 10000 apres fusion",
+   "entree": {
+    "today": "2030-06-15",
+    "nombre": 10000,
+    "autres": [
+     [
+      "2030-01-01",
+      100,
+      "virement",
+      "Revenu fictif"
+     ]
+    ]
+   },
+   "attendu": {
+    "type": "liste",
+    "indisponible": "trop de lignes pour le détail annuel"
+   }
+  }
+ ]
+}

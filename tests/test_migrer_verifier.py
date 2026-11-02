@@ -61,6 +61,20 @@ class TestMigrerVerifier(unittest.TestCase):
             self.assertLessEqual(len(controle['texte']), 200)
             self.assertLessEqual(len(controle['corriger']), 200)
 
+    def test_une_base_partielle_n_est_jamais_adoptee(self):
+        # Repris de test_foundations.py de Smith f9c1599 (spec 013) : une base Finances avec ses tables mais sans les catégories
+        # T2125 est refusée, jamais adoptée comme déjà migrée.
+        from outils_tests import FOLDERS
+        from socle.migrations import migrate
+        ledger = HOME / 'bricolee' / 'finances.db'
+        ledger.parent.mkdir()
+        migrate(ledger, HOME / 'bricolee' / 'backups', FOLDERS['finances'])
+        with closing(sqlite3.connect(ledger)) as con, con:
+            con.execute('DELETE FROM categories')
+            con.execute('DROP TABLE schema_migrations')
+        with self.assertRaisesRegex(RuntimeError, 'données de référence de categories'):
+            migrate(ledger, HOME / 'bricolee' / 'backups', FOLDERS['finances'])
+
     def test_migrations_en_attente(self):
         lancer('moneta-migrer', '--appliquer')
         with closing(sqlite3.connect(self.base())) as con, con:

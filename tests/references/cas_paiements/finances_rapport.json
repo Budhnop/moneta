@@ -1,0 +1,1874 @@
+{
+ "source": "3351db7",
+ "famille": "finances_rapport",
+ "cas": [
+  {
+   "nom": "comptant / sans comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      "comptant"
+     ]
+    ],
+    "comptant": false
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": false,
+     "exclu": {
+      "paiements_dojo": {
+       "nombre": 1,
+       "total": 12.34
+      },
+      "autres_revenus": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "total": 12.34
+     }
+    },
+    "revenus_total": 0.0,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 0.0,
+     "paiements": 0,
+     "par_mode": {
+      "virement": 0.0,
+      "non_precise": 0.0
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 0.0,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Revenu comptant exclu de ce rapport : 12,34 $ (1 paiement(s) du dojo, 0 autre(s) revenu(s)). Le revenu comptant reste un revenu d'entreprise : à voir avec le comptable.",
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "comptant / avec comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      "comptant"
+     ]
+    ],
+    "comptant": true
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": true,
+     "exclu": null
+    },
+    "revenus_total": 12.34,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 12.34,
+     "paiements": 1,
+     "par_mode": {
+      "comptant": 12.34,
+      "virement": 0.0,
+      "non_precise": 0.0
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 12.34,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "virement / sans comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      "virement"
+     ]
+    ],
+    "comptant": false
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": false,
+     "exclu": {
+      "paiements_dojo": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "autres_revenus": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "total": 0.0
+     }
+    },
+    "revenus_total": 12.34,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 12.34,
+     "paiements": 1,
+     "par_mode": {
+      "virement": 12.34,
+      "non_precise": 0.0
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 12.34,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "virement / avec comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      "virement"
+     ]
+    ],
+    "comptant": true
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": true,
+     "exclu": null
+    },
+    "revenus_total": 12.34,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 12.34,
+     "paiements": 1,
+     "par_mode": {
+      "comptant": 0.0,
+      "virement": 12.34,
+      "non_precise": 0.0
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 12.34,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "sans mode / sans comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      null
+     ]
+    ],
+    "comptant": false
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": false,
+     "exclu": {
+      "paiements_dojo": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "autres_revenus": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "total": 0.0
+     }
+    },
+    "revenus_total": 12.34,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 12.34,
+     "paiements": 1,
+     "par_mode": {
+      "virement": 0.0,
+      "non_precise": 12.34
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 12.34,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 1,
+      "total": 12.34
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "sans mode / avec comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      null
+     ]
+    ],
+    "comptant": true
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": true,
+     "exclu": null
+    },
+    "revenus_total": 12.34,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 12.34,
+     "paiements": 1,
+     "par_mode": {
+      "comptant": 0.0,
+      "virement": 0.0,
+      "non_precise": 12.34
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 12.34,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 1,
+      "total": 12.34
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "mode inconnu / sans comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      "troc"
+     ]
+    ],
+    "comptant": false
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": false,
+     "exclu": {
+      "paiements_dojo": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "autres_revenus": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "total": 0.0
+     }
+    },
+    "revenus_total": 12.34,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 12.34,
+     "paiements": 1,
+     "par_mode": {
+      "virement": 0.0,
+      "non_precise": 12.34
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 12.34,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 1,
+      "total": 12.34
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "mode inconnu / avec comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      "troc"
+     ]
+    ],
+    "comptant": true
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": true,
+     "exclu": null
+    },
+    "revenus_total": 12.34,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 12.34,
+     "paiements": 1,
+     "par_mode": {
+      "comptant": 0.0,
+      "virement": 0.0,
+      "non_precise": 12.34
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 12.34,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 1,
+      "total": 12.34
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "mode vide / sans comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      ""
+     ]
+    ],
+    "comptant": false
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": false,
+     "exclu": {
+      "paiements_dojo": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "autres_revenus": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "total": 0.0
+     }
+    },
+    "revenus_total": 12.34,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 12.34,
+     "paiements": 1,
+     "par_mode": {
+      "virement": 0.0,
+      "non_precise": 12.34
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 12.34,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 1,
+      "total": 12.34
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "mode vide / avec comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-01-01",
+      12.345,
+      ""
+     ]
+    ],
+    "comptant": true
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": true,
+     "exclu": null
+    },
+    "revenus_total": 12.34,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 12.34,
+     "paiements": 1,
+     "par_mode": {
+      "comptant": 0.0,
+      "virement": 0.0,
+      "non_precise": 12.34
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 12.34,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 1,
+      "total": 12.34
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "fractions et deux annees / sans comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-03-01",
+      1.005,
+      "comptant"
+     ],
+     [
+      2,
+      "2030-01-01",
+      2.675,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      0.005,
+      null
+     ],
+     [
+      2,
+      "2030-01-01",
+      0.015,
+      "troc"
+     ],
+     [
+      1,
+      "2029-12-31",
+      19.995,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      1.225,
+      "virement"
+     ]
+    ],
+    "autres": [
+     [
+      "2030-01-01",
+      123,
+      "virement",
+      "Revenu fictif"
+     ],
+     [
+      "2030-01-01",
+      234,
+      "comptant",
+      "Vente fictive"
+     ]
+    ],
+    "comptant": false
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": false,
+     "exclu": {
+      "paiements_dojo": {
+       "nombre": 1,
+       "total": 1.0
+      },
+      "autres_revenus": {
+       "nombre": 1,
+       "total": 2.34
+      },
+      "total": 3.34
+     }
+    },
+    "revenus_total": 5.16,
+    "autres_revenus": {
+     "total": 1.23,
+     "nombre": 1,
+     "par_type": {
+      "autre": 1.23
+     },
+     "par_mode": {
+      "virement": 1.23
+     },
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 3.93,
+     "paiements": 4,
+     "par_mode": {
+      "virement": 3.91,
+      "non_precise": 0.02
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 5.16,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 2,
+      "total": 0.02
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Revenu comptant exclu de ce rapport : 3,34 $ (1 paiement(s) du dojo, 1 autre(s) revenu(s)). Le revenu comptant reste un revenu d'entreprise : à voir avec le comptable.",
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "fractions et deux annees / avec comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-03-01",
+      1.005,
+      "comptant"
+     ],
+     [
+      2,
+      "2030-01-01",
+      2.675,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      0.005,
+      null
+     ],
+     [
+      2,
+      "2030-01-01",
+      0.015,
+      "troc"
+     ],
+     [
+      1,
+      "2029-12-31",
+      19.995,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      1.225,
+      "virement"
+     ]
+    ],
+    "autres": [
+     [
+      "2030-01-01",
+      123,
+      "virement",
+      "Revenu fictif"
+     ],
+     [
+      "2030-01-01",
+      234,
+      "comptant",
+      "Vente fictive"
+     ]
+    ],
+    "comptant": true
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": true,
+     "exclu": null
+    },
+    "revenus_total": 8.5,
+    "autres_revenus": {
+     "total": 3.57,
+     "nombre": 2,
+     "par_type": {
+      "autre": 3.57
+     },
+     "par_mode": {
+      "comptant": 2.34,
+      "virement": 1.23
+     },
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 4.93,
+     "paiements": 5,
+     "par_mode": {
+      "comptant": 1.0,
+      "virement": 3.91,
+      "non_precise": 0.02
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 8.5,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 2,
+      "total": 0.02
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "annee precedente / sans comptant",
+   "entree": {
+    "today": "2029-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-03-01",
+      1.005,
+      "comptant"
+     ],
+     [
+      2,
+      "2030-01-01",
+      2.675,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      0.005,
+      null
+     ],
+     [
+      2,
+      "2030-01-01",
+      0.015,
+      "troc"
+     ],
+     [
+      1,
+      "2029-12-31",
+      19.995,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      1.225,
+      "virement"
+     ]
+    ],
+    "comptant": false
+   },
+   "attendu": {
+    "annee": 2029,
+    "comptant": {
+     "inclus": false,
+     "exclu": {
+      "paiements_dojo": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "autres_revenus": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "total": 0.0
+     }
+    },
+    "revenus_total": 20.0,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 20.0,
+     "paiements": 1,
+     "par_mode": {
+      "virement": 20.0,
+      "non_precise": 0.0
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 20.0,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "annee precedente / avec comptant",
+   "entree": {
+    "today": "2029-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-03-01",
+      1.005,
+      "comptant"
+     ],
+     [
+      2,
+      "2030-01-01",
+      2.675,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      0.005,
+      null
+     ],
+     [
+      2,
+      "2030-01-01",
+      0.015,
+      "troc"
+     ],
+     [
+      1,
+      "2029-12-31",
+      19.995,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      1.225,
+      "virement"
+     ]
+    ],
+    "comptant": true
+   },
+   "attendu": {
+    "annee": 2029,
+    "comptant": {
+     "inclus": true,
+     "exclu": null
+    },
+    "revenus_total": 20.0,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 20.0,
+     "paiements": 1,
+     "par_mode": {
+      "comptant": 0.0,
+      "virement": 20.0,
+      "non_precise": 0.0
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 20.0,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "annee sans paiement / sans comptant",
+   "entree": {
+    "today": "2031-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-03-01",
+      1.005,
+      "comptant"
+     ],
+     [
+      2,
+      "2030-01-01",
+      2.675,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      0.005,
+      null
+     ],
+     [
+      2,
+      "2030-01-01",
+      0.015,
+      "troc"
+     ],
+     [
+      1,
+      "2029-12-31",
+      19.995,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      1.225,
+      "virement"
+     ]
+    ],
+    "comptant": false
+   },
+   "attendu": {
+    "annee": 2031,
+    "comptant": {
+     "inclus": false,
+     "exclu": {
+      "paiements_dojo": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "autres_revenus": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "total": 0.0
+     }
+    },
+    "revenus_total": 0.0,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 0.0,
+     "paiements": 0,
+     "par_mode": {
+      "virement": 0.0,
+      "non_precise": 0.0
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 0.0,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "annee sans paiement / avec comptant",
+   "entree": {
+    "today": "2031-06-15",
+    "paiements": [
+     [
+      1,
+      "2030-03-01",
+      1.005,
+      "comptant"
+     ],
+     [
+      2,
+      "2030-01-01",
+      2.675,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      0.005,
+      null
+     ],
+     [
+      2,
+      "2030-01-01",
+      0.015,
+      "troc"
+     ],
+     [
+      1,
+      "2029-12-31",
+      19.995,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      1.225,
+      "virement"
+     ]
+    ],
+    "comptant": true
+   },
+   "attendu": {
+    "annee": 2031,
+    "comptant": {
+     "inclus": true,
+     "exclu": null
+    },
+    "revenus_total": 0.0,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 0.0,
+     "paiements": 0,
+     "par_mode": {
+      "comptant": 0.0,
+      "virement": 0.0,
+      "non_precise": 0.0
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 0.0,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "sans famille / sans comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      999,
+      "2030-01-01",
+      8.005,
+      "virement"
+     ]
+    ],
+    "comptant": false
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": false,
+     "exclu": {
+      "paiements_dojo": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "autres_revenus": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "total": 0.0
+     }
+    },
+    "revenus_total": 8.01,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 8.01,
+     "paiements": 1,
+     "par_mode": {
+      "virement": 8.01,
+      "non_precise": 0.0
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 8.01,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "sans famille / avec comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "paiements": [
+     [
+      999,
+      "2030-01-01",
+      8.005,
+      "virement"
+     ]
+    ],
+    "comptant": true
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": true,
+     "exclu": null
+    },
+    "revenus_total": 8.01,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 8.01,
+     "paiements": 1,
+     "par_mode": {
+      "comptant": 0.0,
+      "virement": 8.01,
+      "non_precise": 0.0
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 8.01,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "sans colonne mode / sans comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "base": "sans_mode",
+    "paiements": [
+     [
+      1,
+      "2030-03-01",
+      1.005,
+      "comptant"
+     ],
+     [
+      2,
+      "2030-01-01",
+      2.675,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      0.005,
+      null
+     ],
+     [
+      2,
+      "2030-01-01",
+      0.015,
+      "troc"
+     ],
+     [
+      1,
+      "2029-12-31",
+      19.995,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      1.225,
+      "virement"
+     ]
+    ],
+    "comptant": false
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": false,
+     "exclu": {
+      "paiements_dojo": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "autres_revenus": {
+       "nombre": 0,
+       "total": 0.0
+      },
+      "total": 0.0
+     }
+    },
+    "revenus_total": 4.93,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 4.93,
+     "paiements": 5,
+     "par_mode": {
+      "virement": 0.0,
+      "non_precise": 4.93
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 4.93,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 5,
+      "total": 4.93
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "sans colonne mode / avec comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "base": "sans_mode",
+    "paiements": [
+     [
+      1,
+      "2030-03-01",
+      1.005,
+      "comptant"
+     ],
+     [
+      2,
+      "2030-01-01",
+      2.675,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      0.005,
+      null
+     ],
+     [
+      2,
+      "2030-01-01",
+      0.015,
+      "troc"
+     ],
+     [
+      1,
+      "2029-12-31",
+      19.995,
+      "virement"
+     ],
+     [
+      1,
+      "2030-01-01",
+      1.225,
+      "virement"
+     ]
+    ],
+    "comptant": true
+   },
+   "attendu": {
+    "annee": 2030,
+    "comptant": {
+     "inclus": true,
+     "exclu": null
+    },
+    "revenus_total": 4.93,
+    "autres_revenus": {
+     "total": 0.0,
+     "nombre": 0,
+     "par_type": {},
+     "par_mode": {},
+     "source": "finances.db, autres revenus"
+    },
+    "revenus_dojo": {
+     "total": 4.93,
+     "paiements": 5,
+     "par_mode": {
+      "comptant": 0.0,
+      "virement": 0.0,
+      "non_precise": 4.93
+     },
+     "source": "dojo.db, paiements reçus, par date de paiement"
+    },
+    "depenses": {
+     "par_ligne": [],
+     "total_brut": 0.0,
+     "total_deductible": 0.0,
+     "nombre": 0
+    },
+    "revenu_net_estime": 4.93,
+    "a_completer": {
+     "paiements_sans_mode": {
+      "nombre": 5,
+      "total": 4.93
+     },
+     "autres_revenus_sans_mode": {
+      "nombre": 0,
+      "total": 0.0
+     },
+     "depenses_incompletes": {
+      "nombre": 0,
+      "total": 0,
+      "detail": "finances_depenses avec incompletes=true"
+     },
+     "sorties_bancaires_dojo_a_classer": {
+      "nombre": 0,
+      "total": 0.0
+     }
+    },
+    "notes": [
+     "Estimation arithmétique, pas un conseil fiscal : à valider avec le comptable.",
+     "Non inclus : amortissement (9936), bureau à domicile (9945).",
+     "Revenus = paiements de dojo.db + autres revenus de finances.db (chacun une seule fois)."
+    ]
+   }
+  },
+  {
+   "nom": "base absente / sans comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "base": "absente",
+    "comptant": false
+   },
+   "attendu": {
+    "exception": "ToolError"
+   }
+  },
+  {
+   "nom": "base absente / avec comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "base": "absente",
+    "comptant": true
+   },
+   "attendu": {
+    "exception": "ToolError"
+   }
+  },
+  {
+   "nom": "base verrouillee / sans comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "base": "verrouillee",
+    "comptant": false
+   },
+   "attendu": {
+    "exception": "ToolError"
+   }
+  },
+  {
+   "nom": "base sans_table / sans comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "base": "sans_table",
+    "comptant": false
+   },
+   "attendu": {
+    "exception": "ToolError"
+   }
+  },
+  {
+   "nom": "base sans_table / avec comptant",
+   "entree": {
+    "today": "2030-06-15",
+    "base": "sans_table",
+    "comptant": true
+   },
+   "attendu": {
+    "exception": "ToolError"
+   }
+  },
+  {
+   "nom": "annee invalide",
+   "entree": {
+    "today": "2030-06-15",
+    "annee": 1999
+   },
+   "attendu": {
+    "exception": "ToolError",
+    "message": "annee invalide (ex. 2026)."
+   }
+  },
+  {
+   "nom": "annee invalide avant base absente",
+   "entree": {
+    "today": "2030-06-15",
+    "annee": 2101,
+    "base": "absente"
+   },
+   "attendu": {
+    "exception": "ToolError"
+   }
+  }
+ ]
+}

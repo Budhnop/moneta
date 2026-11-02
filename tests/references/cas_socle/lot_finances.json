@@ -1,0 +1,859 @@
+{
+ "source": "8033ee8",
+ "famille": "lot_finances",
+ "cas": [
+  {
+   "nom": "go complet",
+   "entree": {
+    "actions": [
+     {
+      "outil": "depense_preparer",
+      "args": {
+       "date": "2026-10-27",
+       "montant": 85.25,
+       "categorie": "8523",
+       "fournisseur": "Restaurant fictif"
+      }
+     },
+     {
+      "outil": "finances_lot_voir"
+     },
+     {
+      "outil": "finances_lot_preparer"
+     },
+     {
+      "outil": "WR_SAVE_FINANCES_BD"
+     },
+     {
+      "outil": "finances_lot_voir"
+     }
+    ],
+    "requetes": [
+     "SELECT count(*) FROM depenses"
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "ajoute": true,
+      "etape": 1,
+      "date": "2026-10-27",
+      "montant": 85.25,
+      "categorie": "8523 Repas et frais de représentation",
+      "pourcentage_deductible": 50,
+      "deductible": 42.63,
+      "fournisseur": "Restaurant fictif",
+      "description": null,
+      "mode": null,
+      "piece": null,
+      "manque": [
+       "piece",
+       "mode"
+      ],
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 85.25,
+        "categorie": "8523 Repas et frais de représentation",
+        "pourcentage_deductible": 50,
+        "deductible": 42.63,
+        "fournisseur": "Restaurant fictif",
+        "description": null,
+        "mode": null,
+        "piece": null,
+        "manque": [
+         "piece",
+         "mode"
+        ]
+       }
+      ],
+      "message": "Ajouté au lot, rien n'est écrit. Continue d'ajouter, ou finances_lot_preparer pour tout enregistrer."
+     },
+     {
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 85.25,
+        "categorie": "8523 Repas et frais de représentation",
+        "pourcentage_deductible": 50,
+        "deductible": 42.63,
+        "fournisseur": "Restaurant fictif",
+        "description": null,
+        "mode": null,
+        "piece": null,
+        "manque": [
+         "piece",
+         "mode"
+        ]
+       }
+      ],
+      "etapes": 1
+     },
+     {
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 85.25,
+        "categorie": "8523 Repas et frais de représentation",
+        "pourcentage_deductible": 50,
+        "deductible": 42.63,
+        "fournisseur": "Restaurant fictif",
+        "description": null,
+        "mode": null,
+        "piece": null,
+        "manque": [
+         "piece",
+         "mode"
+        ]
+       }
+      ],
+      "etapes": 1,
+      "retirees_car_base_modifiee": [],
+      "code": "<code>",
+      "confirmer_avec": "WR_SAVE_FINANCES_BD",
+      "expire_dans_minutes": 10,
+      "confirmation": "go",
+      "raisons_fenetre": [],
+      "montant_compte": 85.25,
+      "message": "Montre tout ce récapitulatif et attends un oui explicite avant WR_SAVE_FINANCES_BD. go : attends le oui d'Ugo; aucune fenêtre."
+     },
+     {
+      "enregistre": true,
+      "confirmation": "go",
+      "raisons_fenetre": [],
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "resultat": "OK : dépense #1 du 2026-10-27, 85.25 $, 8523 Repas et frais de représentation (50 % déductible)."
+       }
+      ]
+     },
+     {
+      "lot": [],
+      "etapes": 0,
+      "dernier_enregistrement": {
+       "heure": "<heure>",
+       "etapes": [
+        {
+         "numero": 1,
+         "operation": "Dépense",
+         "resultat": "OK : dépense #1 du 2026-10-27, 85.25 $, 8523 Repas et frais de représentation (50 % déductible)."
+        }
+       ]
+      }
+     }
+    ],
+    "fenetres": [],
+    "base": {
+     "SELECT count(*) FROM depenses": 1
+    },
+    "sauvegardes": 1,
+    "journal": {
+     "<mois>.jsonl": "{\"id\": \"<id>\", \"heure\": \"<heure>\", \"type\": \"intention\", \"outil\": \"WR_SAVE_FINANCES_BD\", \"lot\": \"finances_lot\", \"mode\": \"go\", \"raisons\": [], \"etapes\": [{\"numero\": 1, \"operation\": \"Dépense\", \"resume\": \"date : 2026-10-27, montant : 85.25, categorie : 8523 Repas et frais de représentation, pourcentage_deductible : 50, deductible : 42.63, fournisseur : Restaurant fictif, description : null, mode : null, piece : null, manque : [\\\"piece\\\", \\\"mode\\\"]\"}], \"montant\": \"85.25\", \"origine\": \"desktop\"}\n{\"id\": \"<id>\", \"heure\": \"<heure>\", \"type\": \"resultat\", \"resultat\": \"enregistre\", \"detail\": null}\n"
+    }
+   }
+  },
+  {
+   "nom": "plafond oui",
+   "entree": {
+    "actions": [
+     {
+      "outil": "depense_preparer",
+      "args": {
+       "date": "2026-10-27",
+       "montant": 1200,
+       "categorie": "8910",
+       "mode": "virement",
+       "piece": "B-2"
+      }
+     },
+     {
+      "outil": "finances_lot_preparer"
+     },
+     {
+      "outil": "WR_SAVE_FINANCES_BD"
+     }
+    ],
+    "requetes": [
+     "SELECT count(*) FROM depenses"
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "ajoute": true,
+      "etape": 1,
+      "date": "2026-10-27",
+      "montant": 1200.0,
+      "categorie": "8910 Loyer (location de salle)",
+      "pourcentage_deductible": 100,
+      "deductible": 1200.0,
+      "fournisseur": null,
+      "description": null,
+      "mode": "virement",
+      "piece": "B-2",
+      "manque": [
+       "fournisseur"
+      ],
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 1200.0,
+        "categorie": "8910 Loyer (location de salle)",
+        "pourcentage_deductible": 100,
+        "deductible": 1200.0,
+        "fournisseur": null,
+        "description": null,
+        "mode": "virement",
+        "piece": "B-2",
+        "manque": [
+         "fournisseur"
+        ]
+       }
+      ],
+      "message": "Ajouté au lot, rien n'est écrit. Continue d'ajouter, ou finances_lot_preparer pour tout enregistrer."
+     },
+     {
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 1200.0,
+        "categorie": "8910 Loyer (location de salle)",
+        "pourcentage_deductible": 100,
+        "deductible": 1200.0,
+        "fournisseur": null,
+        "description": null,
+        "mode": "virement",
+        "piece": "B-2",
+        "manque": [
+         "fournisseur"
+        ]
+       }
+      ],
+      "etapes": 1,
+      "retirees_car_base_modifiee": [],
+      "code": "<code>",
+      "confirmer_avec": "WR_SAVE_FINANCES_BD",
+      "expire_dans_minutes": 10,
+      "confirmation": "fenetre",
+      "raisons_fenetre": [
+       "Plus de 1 000 $ dans ce lot."
+      ],
+      "montant_compte": 1200.0,
+      "message": "Montre tout ce récapitulatif et attends un oui explicite avant WR_SAVE_FINANCES_BD. fenêtre : dis à Ugo d'y cliquer Enregistrer (50 secondes)."
+     },
+     {
+      "enregistre": true,
+      "confirmation": "fenetre",
+      "raisons_fenetre": [
+       "Plus de 1 000 $ dans ce lot."
+      ],
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "resultat": "OK : dépense #1 du 2026-10-27, 1200.00 $, 8910 Loyer (location de salle) (100 % déductible)."
+       }
+      ]
+     }
+    ],
+    "fenetres": [
+     {
+      "titre": "WR_SAVE_FINANCES_BD — base Finances",
+      "texte": "Agent Smith va écrire :\n\nPourquoi cette fenêtre :\nPlus de 1 000 $ dans ce lot.\n\n1. Dépense — date : 2026-10-27, montant : 1200.0, categorie : 8910 Loyer (location de salle), pourcentage_deductible : 100, deductible : 1200.0, fournisseur : null, description : null, mode : virement, piece : B-2, manque : [\"fournisseur\"]\n\nEnregistrer seulement si c'est exactement ce que tu as demandé."
+     }
+    ],
+    "base": {
+     "SELECT count(*) FROM depenses": 1
+    },
+    "sauvegardes": 1,
+    "journal": {
+     "<mois>.jsonl": "{\"id\": \"<id>\", \"heure\": \"<heure>\", \"type\": \"intention\", \"outil\": \"WR_SAVE_FINANCES_BD\", \"lot\": \"finances_lot\", \"mode\": \"fenetre\", \"raisons\": [\"plafond_montant\"], \"etapes\": [{\"numero\": 1, \"operation\": \"Dépense\", \"resume\": \"date : 2026-10-27, montant : 1200.0, categorie : 8910 Loyer (location de salle), pourcentage_deductible : 100, deductible : 1200.0, fournisseur : null, description : null, mode : virement, piece : B-2, manque : [\\\"fournisseur\\\"]\"}], \"montant\": \"1200.00\", \"origine\": \"desktop\"}\n{\"id\": \"<id>\", \"heure\": \"<heure>\", \"type\": \"resultat\", \"resultat\": \"enregistre\", \"detail\": null}\n"
+    }
+   }
+  },
+  {
+   "nom": "plafond non",
+   "entree": {
+    "actions": [
+     {
+      "outil": "depense_preparer",
+      "args": {
+       "date": "2026-10-27",
+       "montant": 1200,
+       "categorie": "8910",
+       "mode": "virement",
+       "piece": "B-2"
+      }
+     },
+     {
+      "outil": "finances_lot_preparer"
+     },
+     {
+      "outil": "WR_SAVE_FINANCES_BD"
+     }
+    ],
+    "requetes": [
+     "SELECT count(*) FROM depenses"
+    ],
+    "clic": false
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "ajoute": true,
+      "etape": 1,
+      "date": "2026-10-27",
+      "montant": 1200.0,
+      "categorie": "8910 Loyer (location de salle)",
+      "pourcentage_deductible": 100,
+      "deductible": 1200.0,
+      "fournisseur": null,
+      "description": null,
+      "mode": "virement",
+      "piece": "B-2",
+      "manque": [
+       "fournisseur"
+      ],
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 1200.0,
+        "categorie": "8910 Loyer (location de salle)",
+        "pourcentage_deductible": 100,
+        "deductible": 1200.0,
+        "fournisseur": null,
+        "description": null,
+        "mode": "virement",
+        "piece": "B-2",
+        "manque": [
+         "fournisseur"
+        ]
+       }
+      ],
+      "message": "Ajouté au lot, rien n'est écrit. Continue d'ajouter, ou finances_lot_preparer pour tout enregistrer."
+     },
+     {
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 1200.0,
+        "categorie": "8910 Loyer (location de salle)",
+        "pourcentage_deductible": 100,
+        "deductible": 1200.0,
+        "fournisseur": null,
+        "description": null,
+        "mode": "virement",
+        "piece": "B-2",
+        "manque": [
+         "fournisseur"
+        ]
+       }
+      ],
+      "etapes": 1,
+      "retirees_car_base_modifiee": [],
+      "code": "<code>",
+      "confirmer_avec": "WR_SAVE_FINANCES_BD",
+      "expire_dans_minutes": 10,
+      "confirmation": "fenetre",
+      "raisons_fenetre": [
+       "Plus de 1 000 $ dans ce lot."
+      ],
+      "montant_compte": 1200.0,
+      "message": "Montre tout ce récapitulatif et attends un oui explicite avant WR_SAVE_FINANCES_BD. fenêtre : dis à Ugo d'y cliquer Enregistrer (50 secondes)."
+     },
+     {
+      "refus": "Non confirmé sur le Mac (Annuler, fenêtre fermée ou pas de réponse en 50 s); rien n'est enregistré. Ne réessaie pas de toi-même : demande à l'utilisateur s'il veut recommencer."
+     }
+    ],
+    "fenetres": [
+     {
+      "titre": "WR_SAVE_FINANCES_BD — base Finances",
+      "texte": "Agent Smith va écrire :\n\nPourquoi cette fenêtre :\nPlus de 1 000 $ dans ce lot.\n\n1. Dépense — date : 2026-10-27, montant : 1200.0, categorie : 8910 Loyer (location de salle), pourcentage_deductible : 100, deductible : 1200.0, fournisseur : null, description : null, mode : virement, piece : B-2, manque : [\"fournisseur\"]\n\nEnregistrer seulement si c'est exactement ce que tu as demandé."
+     }
+    ],
+    "base": {
+     "SELECT count(*) FROM depenses": 0
+    },
+    "sauvegardes": 0,
+    "journal": {
+     "<mois>.jsonl": "{\"id\": \"<id>\", \"heure\": \"<heure>\", \"type\": \"intention\", \"outil\": \"WR_SAVE_FINANCES_BD\", \"lot\": \"finances_lot\", \"mode\": \"fenetre\", \"raisons\": [\"plafond_montant\"], \"etapes\": [{\"numero\": 1, \"operation\": \"Dépense\", \"resume\": \"date : 2026-10-27, montant : 1200.0, categorie : 8910 Loyer (location de salle), pourcentage_deductible : 100, deductible : 1200.0, fournisseur : null, description : null, mode : virement, piece : B-2, manque : [\\\"fournisseur\\\"]\"}], \"montant\": \"1200.00\", \"origine\": \"desktop\"}\n{\"id\": \"<id>\", \"heure\": \"<heure>\", \"type\": \"resultat\", \"resultat\": \"non_confirme\", \"detail\": null}\n"
+    }
+   }
+  },
+  {
+   "nom": "regle fenetre",
+   "entree": {
+    "actions": [
+     {
+      "outil": "regle_preparer",
+      "args": {
+       "motif": "iga",
+       "categorie": "8523"
+      }
+     },
+     {
+      "outil": "finances_lot_preparer"
+     },
+     {
+      "outil": "WR_SAVE_FINANCES_BD"
+     }
+    ],
+    "clic": false
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "ajoute": true,
+      "etape": 1,
+      "motif": "iga",
+      "categorie": "8523 Repas et frais de représentation (dépense du dojo)",
+      "operations_classees_maintenant": 0,
+      "exemples": [],
+      "effet": "Classera aussi les prochains relevés dont la description contient ce motif.",
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Règle de classement",
+        "motif": "iga",
+        "categorie": "8523 Repas et frais de représentation (dépense du dojo)",
+        "operations_classees_maintenant": 0,
+        "exemples": [],
+        "effet": "Classera aussi les prochains relevés dont la description contient ce motif."
+       }
+      ],
+      "message": "Ajouté au lot, rien n'est écrit. Continue d'ajouter, ou finances_lot_preparer pour tout enregistrer."
+     },
+     {
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Règle de classement",
+        "motif": "iga",
+        "categorie": "8523 Repas et frais de représentation (dépense du dojo)",
+        "operations_classees_maintenant": 0,
+        "exemples": [],
+        "effet": "Classera aussi les prochains relevés dont la description contient ce motif."
+       }
+      ],
+      "etapes": 1,
+      "retirees_car_base_modifiee": [],
+      "code": "<code>",
+      "confirmer_avec": "WR_SAVE_FINANCES_BD",
+      "expire_dans_minutes": 10,
+      "confirmation": "fenetre",
+      "raisons_fenetre": [
+       "Règle de classement : elle classe aussi les opérations à venir."
+      ],
+      "montant_compte": 0.0,
+      "message": "Montre tout ce récapitulatif et attends un oui explicite avant WR_SAVE_FINANCES_BD. fenêtre : dis à Ugo d'y cliquer Enregistrer (50 secondes)."
+     },
+     {
+      "refus": "Non confirmé sur le Mac (Annuler, fenêtre fermée ou pas de réponse en 50 s); rien n'est enregistré. Ne réessaie pas de toi-même : demande à l'utilisateur s'il veut recommencer."
+     }
+    ],
+    "fenetres": [
+     {
+      "titre": "WR_SAVE_FINANCES_BD — base Finances",
+      "texte": "Agent Smith va écrire :\n\nPourquoi cette fenêtre :\nRègle de classement : elle classe aussi les opérations à venir.\n\n1. Règle de classement — motif : iga, categorie : 8523 Repas et frais de représentation (dépense du dojo), operations_classees_maintenant : 0, exemples : [], effet : Classera aussi les prochains relevés dont la description contient ce motif.\n\nEnregistrer seulement si c'est exactement ce que tu as demandé."
+     }
+    ],
+    "base": {},
+    "sauvegardes": 0,
+    "journal": {
+     "<mois>.jsonl": "{\"id\": \"<id>\", \"heure\": \"<heure>\", \"type\": \"intention\", \"outil\": \"WR_SAVE_FINANCES_BD\", \"lot\": \"finances_lot\", \"mode\": \"fenetre\", \"raisons\": [\"reglage\"], \"etapes\": [{\"numero\": 1, \"operation\": \"Règle de classement\", \"resume\": \"motif : iga, categorie : 8523 Repas et frais de représentation (dépense du dojo), operations_classees_maintenant : 0, exemples : [], effet : Classera aussi les prochains relevés dont la description contient ce motif.\"}], \"montant\": \"0.00\", \"origine\": \"desktop\"}\n{\"id\": \"<id>\", \"heure\": \"<heure>\", \"type\": \"resultat\", \"resultat\": \"non_confirme\", \"detail\": null}\n"
+    }
+   }
+  },
+  {
+   "nom": "categorie inconnue",
+   "entree": {
+    "actions": [
+     {
+      "outil": "depense_preparer",
+      "args": {
+       "date": "2026-10-27",
+       "montant": 85.25,
+       "categorie": "1234",
+       "fournisseur": "Restaurant fictif"
+      }
+     },
+     {
+      "outil": "finances_lot_voir"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "refus": "Catégorie inconnue; utilise un code de finances_reference; rien n'est préparé."
+     },
+     {
+      "lot": [],
+      "etapes": 0
+     }
+    ],
+    "fenetres": [],
+    "base": {},
+    "sauvegardes": 0,
+    "journal": {}
+   }
+  },
+  {
+   "nom": "montant invalide",
+   "entree": {
+    "actions": [
+     {
+      "outil": "depense_preparer",
+      "args": {
+       "date": "2026-10-27",
+       "montant": 10.001,
+       "categorie": "8523",
+       "fournisseur": "Restaurant fictif"
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "refus": "Montant invalide (entre 0,01 et 100 000 $, au cent près); rien n'est préparé."
+     }
+    ],
+    "fenetres": [],
+    "base": {},
+    "sauvegardes": 0,
+    "journal": {}
+   }
+  },
+  {
+   "nom": "code faux",
+   "entree": {
+    "actions": [
+     {
+      "outil": "depense_preparer",
+      "args": {
+       "date": "2026-10-27",
+       "montant": 85.25,
+       "categorie": "8523",
+       "fournisseur": "Restaurant fictif"
+      }
+     },
+     {
+      "outil": "finances_lot_preparer"
+     },
+     {
+      "outil": "WR_SAVE_FINANCES_BD",
+      "code": "abcdef"
+     }
+    ],
+    "requetes": [
+     "SELECT count(*) FROM depenses"
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "ajoute": true,
+      "etape": 1,
+      "date": "2026-10-27",
+      "montant": 85.25,
+      "categorie": "8523 Repas et frais de représentation",
+      "pourcentage_deductible": 50,
+      "deductible": 42.63,
+      "fournisseur": "Restaurant fictif",
+      "description": null,
+      "mode": null,
+      "piece": null,
+      "manque": [
+       "piece",
+       "mode"
+      ],
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 85.25,
+        "categorie": "8523 Repas et frais de représentation",
+        "pourcentage_deductible": 50,
+        "deductible": 42.63,
+        "fournisseur": "Restaurant fictif",
+        "description": null,
+        "mode": null,
+        "piece": null,
+        "manque": [
+         "piece",
+         "mode"
+        ]
+       }
+      ],
+      "message": "Ajouté au lot, rien n'est écrit. Continue d'ajouter, ou finances_lot_preparer pour tout enregistrer."
+     },
+     {
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 85.25,
+        "categorie": "8523 Repas et frais de représentation",
+        "pourcentage_deductible": 50,
+        "deductible": 42.63,
+        "fournisseur": "Restaurant fictif",
+        "description": null,
+        "mode": null,
+        "piece": null,
+        "manque": [
+         "piece",
+         "mode"
+        ]
+       }
+      ],
+      "etapes": 1,
+      "retirees_car_base_modifiee": [],
+      "code": "<code>",
+      "confirmer_avec": "WR_SAVE_FINANCES_BD",
+      "expire_dans_minutes": 10,
+      "confirmation": "go",
+      "raisons_fenetre": [],
+      "montant_compte": 85.25,
+      "message": "Montre tout ce récapitulatif et attends un oui explicite avant WR_SAVE_FINANCES_BD. go : attends le oui d'Ugo; aucune fenêtre."
+     },
+     {
+      "refus": "Aucun lot préparé pour ce code. Appelle finances_lot_preparer; rien n'est enregistré."
+     }
+    ],
+    "fenetres": [],
+    "base": {
+     "SELECT count(*) FROM depenses": 0
+    },
+    "sauvegardes": 0,
+    "journal": {}
+   }
+  },
+  {
+   "nom": "etape vieillie",
+   "entree": {
+    "actions": [
+     {
+      "outil": "depense_preparer",
+      "args": {
+       "date": "2026-10-27",
+       "montant": 85.25,
+       "categorie": "8523",
+       "fournisseur": "Restaurant fictif"
+      }
+     },
+     {
+      "outil": "finances_lot_voir",
+      "avance": 1801
+     }
+    ],
+    "requetes": [
+     "SELECT count(*) FROM depenses"
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "ajoute": true,
+      "etape": 1,
+      "date": "2026-10-27",
+      "montant": 85.25,
+      "categorie": "8523 Repas et frais de représentation",
+      "pourcentage_deductible": 50,
+      "deductible": 42.63,
+      "fournisseur": "Restaurant fictif",
+      "description": null,
+      "mode": null,
+      "piece": null,
+      "manque": [
+       "piece",
+       "mode"
+      ],
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 85.25,
+        "categorie": "8523 Repas et frais de représentation",
+        "pourcentage_deductible": 50,
+        "deductible": 42.63,
+        "fournisseur": "Restaurant fictif",
+        "description": null,
+        "mode": null,
+        "piece": null,
+        "manque": [
+         "piece",
+         "mode"
+        ]
+       }
+      ],
+      "message": "Ajouté au lot, rien n'est écrit. Continue d'ajouter, ou finances_lot_preparer pour tout enregistrer."
+     },
+     {
+      "lot": [],
+      "etapes": 0,
+      "retirees_car_trop_anciennes": [
+       {
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 85.25,
+        "categorie": "8523 Repas et frais de représentation",
+        "pourcentage_deductible": 50,
+        "deductible": 42.63,
+        "fournisseur": "Restaurant fictif",
+        "description": null,
+        "mode": null,
+        "piece": null,
+        "manque": [
+         "piece",
+         "mode"
+        ],
+        "raison": "ajoutée il y a plus de 30 minutes; ajoute-la de nouveau si elle est toujours voulue"
+       }
+      ]
+     }
+    ],
+    "fenetres": [],
+    "base": {
+     "SELECT count(*) FROM depenses": 0
+    },
+    "sauvegardes": 0,
+    "journal": {}
+   }
+  },
+  {
+   "nom": "panne resultat inconnu",
+   "entree": {
+    "actions": [
+     {
+      "outil": "depense_preparer",
+      "args": {
+       "date": "2026-10-27",
+       "montant": 85.25,
+       "categorie": "8523",
+       "fournisseur": "Restaurant fictif"
+      }
+     },
+     {
+      "outil": "finances_lot_preparer"
+     },
+     {
+      "outil": "WR_SAVE_FINANCES_BD",
+      "panne": "Exception"
+     },
+     {
+      "outil": "finances_lot_voir"
+     }
+    ],
+    "requetes": [
+     "SELECT count(*) FROM depenses"
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "ajoute": true,
+      "etape": 1,
+      "date": "2026-10-27",
+      "montant": 85.25,
+      "categorie": "8523 Repas et frais de représentation",
+      "pourcentage_deductible": 50,
+      "deductible": 42.63,
+      "fournisseur": "Restaurant fictif",
+      "description": null,
+      "mode": null,
+      "piece": null,
+      "manque": [
+       "piece",
+       "mode"
+      ],
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 85.25,
+        "categorie": "8523 Repas et frais de représentation",
+        "pourcentage_deductible": 50,
+        "deductible": 42.63,
+        "fournisseur": "Restaurant fictif",
+        "description": null,
+        "mode": null,
+        "piece": null,
+        "manque": [
+         "piece",
+         "mode"
+        ]
+       }
+      ],
+      "message": "Ajouté au lot, rien n'est écrit. Continue d'ajouter, ou finances_lot_preparer pour tout enregistrer."
+     },
+     {
+      "lot": [
+       {
+        "numero": 1,
+        "operation": "Dépense",
+        "date": "2026-10-27",
+        "montant": 85.25,
+        "categorie": "8523 Repas et frais de représentation",
+        "pourcentage_deductible": 50,
+        "deductible": 42.63,
+        "fournisseur": "Restaurant fictif",
+        "description": null,
+        "mode": null,
+        "piece": null,
+        "manque": [
+         "piece",
+         "mode"
+        ]
+       }
+      ],
+      "etapes": 1,
+      "retirees_car_base_modifiee": [],
+      "code": "<code>",
+      "confirmer_avec": "WR_SAVE_FINANCES_BD",
+      "expire_dans_minutes": 10,
+      "confirmation": "go",
+      "raisons_fenetre": [],
+      "montant_compte": 85.25,
+      "message": "Montre tout ce récapitulatif et attends un oui explicite avant WR_SAVE_FINANCES_BD. go : attends le oui d'Ugo; aucune fenêtre."
+     },
+     {
+      "refus": "⚠ Résultat inconnu : l'enregistrement s'est interrompu. Les changements ont peut-être été enregistrés. Le lot est vidé pour éviter un doublon : vérifie d'abord (journal des écritures, finances_lot_voir), puis prépare seulement ce qui manque."
+     },
+     {
+      "lot": [],
+      "etapes": 0
+     }
+    ],
+    "fenetres": [],
+    "base": {
+     "SELECT count(*) FROM depenses": 0
+    },
+    "sauvegardes": 0,
+    "journal": {
+     "<mois>.jsonl": "{\"id\": \"<id>\", \"heure\": \"<heure>\", \"type\": \"intention\", \"outil\": \"WR_SAVE_FINANCES_BD\", \"lot\": \"finances_lot\", \"mode\": \"go\", \"raisons\": [], \"etapes\": [{\"numero\": 1, \"operation\": \"Dépense\", \"resume\": \"date : 2026-10-27, montant : 85.25, categorie : 8523 Repas et frais de représentation, pourcentage_deductible : 50, deductible : 42.63, fournisseur : Restaurant fictif, description : null, mode : null, piece : null, manque : [\\\"piece\\\", \\\"mode\\\"]\"}], \"montant\": \"85.25\", \"origine\": \"desktop\"}\n{\"id\": \"<id>\", \"heure\": \"<heure>\", \"type\": \"resultat\", \"resultat\": \"inconnu\", \"detail\": \"RuntimeError\"}\n"
+    }
+   }
+  }
+ ]
+}

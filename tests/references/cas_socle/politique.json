@@ -1,0 +1,1499 @@
+{
+ "source": "8033ee8",
+ "famille": "politique",
+ "cas": [
+  {
+   "nom": "go simple",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 10.0
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "go",
+    "raisons": [],
+    "montant": "10.0",
+    "etapes": 1,
+    "libelles": []
+   }
+  },
+  {
+   "nom": "lot vide",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": []
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "doute"
+    ],
+    "montant": "0",
+    "etapes": 0,
+    "libelles": [
+     "Le serveur a un doute."
+    ]
+   }
+  },
+  {
+   "nom": "lot hors liste",
+   "entree": {
+    "type": "decider",
+    "lot": "publication_lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 10.0
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "hors_liste"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Écriture hors de la liste des écritures locales."
+    ]
+   }
+  },
+  {
+   "nom": "lot aucun",
+   "entree": {
+    "type": "decider",
+    "lot": null,
+    "etapes": []
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "hors_liste"
+    ],
+    "montant": "0",
+    "etapes": 0,
+    "libelles": [
+     "Écriture hors de la liste des écritures locales."
+    ]
+   }
+  },
+  {
+   "nom": "etapes pas une liste",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": "x"
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "doute"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Le serveur a un doute."
+    ]
+   }
+  },
+  {
+   "nom": "etape mal formee",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer"
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "doute"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Le serveur a un doute."
+    ]
+   }
+  },
+  {
+   "nom": "outil inconnu",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "inconnu_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 10.0
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "hors_liste"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Écriture hors de la liste des écritures locales."
+    ]
+   }
+  },
+  {
+   "nom": "outil autre lot",
+   "entree": {
+    "type": "decider",
+    "lot": "finances_lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 10.0
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "hors_liste"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Écriture hors de la liste des écritures locales."
+    ]
+   }
+  },
+  {
+   "nom": "signal recent",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 10.0
+      }
+     }
+    ],
+    "signal": "recent"
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "texte_autrui_recent"
+    ],
+    "montant": "10.0",
+    "etapes": 1,
+    "libelles": [
+     "Du texte écrit par d'autres a été lu il y a moins de 30 minutes."
+    ]
+   }
+  },
+  {
+   "nom": "signal ancien",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 10.0
+      }
+     }
+    ],
+    "signal": "ancien"
+   },
+   "attendu": {
+    "mode": "go",
+    "raisons": [],
+    "montant": "10.0",
+    "etapes": 1,
+    "libelles": []
+   }
+  },
+  {
+   "nom": "signal absent",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 10.0
+      }
+     }
+    ],
+    "signal": "absent"
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "signal_douteux"
+    ],
+    "montant": "10.0",
+    "etapes": 1,
+    "libelles": [
+     "Le serveur ne sait pas si du texte d'autrui a été lu récemment."
+    ]
+   }
+  },
+  {
+   "nom": "signal douteux",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 10.0
+      }
+     }
+    ],
+    "signal": "douteux"
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "signal_douteux"
+    ],
+    "montant": "10.0",
+    "etapes": 1,
+    "libelles": [
+     "Le serveur ne sait pas si du texte d'autrui a été lu récemment."
+    ]
+   }
+  },
+  {
+   "nom": "signal etape recent",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 10.0
+      },
+      "signal": "recent"
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "texte_autrui_recent"
+    ],
+    "montant": "10.0",
+    "etapes": 1,
+    "libelles": [
+     "Du texte écrit par d'autres a été lu il y a moins de 30 minutes."
+    ]
+   }
+  },
+  {
+   "nom": "signal etape douteux",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 10.0
+      },
+      "signal": "douteux"
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "signal_douteux"
+    ],
+    "montant": "10.0",
+    "etapes": 1,
+    "libelles": [
+     "Le serveur ne sait pas si du texte d'autrui a été lu récemment."
+    ]
+   }
+  },
+  {
+   "nom": "signal etape bizarre",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 10.0
+      },
+      "signal": "x"
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "doute"
+    ],
+    "montant": "10.0",
+    "etapes": 1,
+    "libelles": [
+     "Le serveur a un doute."
+    ]
+   }
+  },
+  {
+   "nom": "montant 1000",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1000.0
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "go",
+    "raisons": [],
+    "montant": "1000.0",
+    "etapes": 1,
+    "libelles": []
+   }
+  },
+  {
+   "nom": "montant 1000.01",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1000.01
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "plafond_montant"
+    ],
+    "montant": "1000.01",
+    "etapes": 1,
+    "libelles": [
+     "Plus de 1 000 $ dans ce lot."
+    ]
+   }
+  },
+  {
+   "nom": "montant illisible",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": "dix"
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "doute"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Le serveur a un doute."
+    ]
+   }
+  },
+  {
+   "nom": "montant infini",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": true
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "doute"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Le serveur a un doute."
+    ]
+   }
+  },
+  {
+   "nom": "solde paye ailleurs",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paye_ailleurs_preparer",
+      "operation": "paye_ailleurs",
+      "resume": {
+       "solde_avant": 1500.0
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "plafond_montant"
+    ],
+    "montant": "1500.0",
+    "etapes": 1,
+    "libelles": [
+     "Plus de 1 000 $ dans ce lot."
+    ]
+   }
+  },
+  {
+   "nom": "classer sans t2125",
+   "entree": {
+    "type": "decider",
+    "lot": "finances_lot",
+    "etapes": [
+     {
+      "outil": "operation_classer_preparer",
+      "operation": "classer",
+      "resume": {}
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "go",
+    "raisons": [],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": []
+   }
+  },
+  {
+   "nom": "classer avec t2125",
+   "entree": {
+    "type": "decider",
+    "lot": "finances_lot",
+    "etapes": [
+     {
+      "outil": "operation_classer_preparer",
+      "operation": "classer",
+      "resume": {
+       "depense_t2125": 40.0
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "go",
+    "raisons": [],
+    "montant": "40.0",
+    "etapes": 1,
+    "libelles": []
+   }
+  },
+  {
+   "nom": "depense",
+   "entree": {
+    "type": "decider",
+    "lot": "finances_lot",
+    "etapes": [
+     {
+      "outil": "depense_preparer",
+      "operation": "depense",
+      "resume": {
+       "montant": 12.5
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "go",
+    "raisons": [],
+    "montant": "12.5",
+    "etapes": 1,
+    "libelles": []
+   }
+  },
+  {
+   "nom": "regle fenetre",
+   "entree": {
+    "type": "decider",
+    "lot": "finances_lot",
+    "etapes": [
+     {
+      "outil": "regle_preparer",
+      "operation": "regle",
+      "resume": {}
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "reglage"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Règle de classement : elle classe aussi les opérations à venir."
+    ]
+   }
+  },
+  {
+   "nom": "annulation fenetre",
+   "entree": {
+    "type": "decider",
+    "lot": "finances_lot",
+    "etapes": [
+     {
+      "outil": "depense_annulation_preparer",
+      "operation": "depense_annuler",
+      "resume": {}
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "suppression"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Suppression, annulation ou retrait."
+    ]
+   }
+  },
+  {
+   "nom": "plafond jour",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 200.0
+      }
+     }
+    ],
+    "deja": "900.00"
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "plafond_jour"
+    ],
+    "montant": "200.0",
+    "etapes": 1,
+    "libelles": [
+     "Plus de 1 000 $ écrits sans fenêtre aujourd'hui."
+    ]
+   }
+  },
+  {
+   "nom": "plafond jour juste",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 100.0
+      }
+     }
+    ],
+    "deja": "900.00"
+   },
+   "attendu": {
+    "mode": "go",
+    "raisons": [],
+    "montant": "100.0",
+    "etapes": 1,
+    "libelles": []
+   }
+  },
+  {
+   "nom": "plafond jour inconnu compte",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 200.0
+      }
+     }
+    ],
+    "deja": "900.00",
+    "deja_resultat": "inconnu"
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "plafond_jour"
+    ],
+    "montant": "200.0",
+    "etapes": 1,
+    "libelles": [
+     "Plus de 1 000 $ écrits sans fenêtre aujourd'hui."
+    ]
+   }
+  },
+  {
+   "nom": "plafond jour refuse compte pas",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 200.0
+      }
+     }
+    ],
+    "deja": "900.00",
+    "deja_resultat": "refuse"
+   },
+   "attendu": {
+    "mode": "go",
+    "raisons": [],
+    "montant": "200.0",
+    "etapes": 1,
+    "libelles": []
+   }
+  },
+  {
+   "nom": "plafond etapes 10",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "go",
+    "raisons": [],
+    "montant": "10.0",
+    "etapes": 10,
+    "libelles": []
+   }
+  },
+  {
+   "nom": "plafond etapes 11",
+   "entree": {
+    "type": "decider",
+    "lot": "lot",
+    "etapes": [
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     },
+     {
+      "outil": "paiement_preparer",
+      "operation": "paiement",
+      "resume": {
+       "montant": 1.0
+      }
+     }
+    ]
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "plafond_etapes"
+    ],
+    "montant": "11.0",
+    "etapes": 11,
+    "libelles": [
+     "Plus de 10 étapes dans ce lot."
+    ]
+   }
+  },
+  {
+   "nom": "calendrier non configure",
+   "entree": {
+    "type": "decider",
+    "lot": "calendrier_lot",
+    "etapes": [
+     {
+      "outil": "evenement_creer_preparer",
+      "operation": "creer",
+      "resume": {
+       "action": "creer",
+       "ou": "iCloud / Calendar",
+       "vers": null,
+       "trouves": [
+        "iCloud / Calendar",
+        "iCloud / Family"
+       ],
+       "nombre_invites": 0
+      }
+     }
+    ],
+    "version_app": 9
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "sortie",
+     "configuration_absente"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Cette écriture peut quitter le Mac (calendrier ou liste partagés, invités).",
+     "Calendriers privés non configurés."
+    ]
+   }
+  },
+  {
+   "nom": "calendrier prive",
+   "entree": {
+    "type": "decider",
+    "lot": "calendrier_lot",
+    "etapes": [
+     {
+      "outil": "evenement_creer_preparer",
+      "operation": "creer",
+      "resume": {
+       "action": "creer",
+       "ou": "iCloud / Calendar",
+       "vers": null,
+       "trouves": [
+        "iCloud / Calendar",
+        "iCloud / Family"
+       ],
+       "nombre_invites": 0
+      }
+     }
+    ],
+    "version_app": 9,
+    "confiance": {
+     "version": 1,
+     "calendriers_prives": [
+      "iCloud / Calendar"
+     ],
+     "listes_privees": [
+      "Rappels"
+     ],
+     "adresses_ugo": [
+      "moi@exemple.ca"
+     ]
+    }
+   },
+   "attendu": {
+    "mode": "go",
+    "raisons": [],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": []
+   }
+  },
+  {
+   "nom": "calendrier partage",
+   "entree": {
+    "type": "decider",
+    "lot": "calendrier_lot",
+    "etapes": [
+     {
+      "outil": "evenement_creer_preparer",
+      "operation": "creer",
+      "resume": {
+       "action": "creer",
+       "ou": "iCloud / Family",
+       "vers": null,
+       "trouves": [
+        "iCloud / Calendar",
+        "iCloud / Family"
+       ],
+       "nombre_invites": 0
+      }
+     }
+    ],
+    "version_app": 9,
+    "confiance": {
+     "version": 1,
+     "calendriers_prives": [
+      "iCloud / Calendar"
+     ],
+     "listes_privees": [
+      "Rappels"
+     ],
+     "adresses_ugo": [
+      "moi@exemple.ca"
+     ]
+    }
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "sortie"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Cette écriture peut quitter le Mac (calendrier ou liste partagés, invités)."
+    ]
+   }
+  },
+  {
+   "nom": "calendrier invites",
+   "entree": {
+    "type": "decider",
+    "lot": "calendrier_lot",
+    "etapes": [
+     {
+      "outil": "evenement_creer_preparer",
+      "operation": "creer",
+      "resume": {
+       "action": "creer",
+       "ou": "iCloud / Calendar",
+       "vers": null,
+       "trouves": [
+        "iCloud / Calendar",
+        "iCloud / Family"
+       ],
+       "nombre_invites": 2
+      }
+     }
+    ],
+    "version_app": 9,
+    "confiance": {
+     "version": 1,
+     "calendriers_prives": [
+      "iCloud / Calendar"
+     ],
+     "listes_privees": [
+      "Rappels"
+     ],
+     "adresses_ugo": [
+      "moi@exemple.ca"
+     ]
+    }
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "sortie"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Cette écriture peut quitter le Mac (calendrier ou liste partagés, invités)."
+    ]
+   }
+  },
+  {
+   "nom": "calendrier suppression",
+   "entree": {
+    "type": "decider",
+    "lot": "calendrier_lot",
+    "etapes": [
+     {
+      "outil": "evenement_supprimer_preparer",
+      "operation": "supprimer",
+      "resume": {
+       "action": "supprimer",
+       "ou": "iCloud / Calendar",
+       "vers": null,
+       "trouves": [
+        "iCloud / Calendar",
+        "iCloud / Family"
+       ],
+       "nombre_invites": 0
+      }
+     }
+    ],
+    "version_app": 9,
+    "confiance": {
+     "version": 1,
+     "calendriers_prives": [
+      "iCloud / Calendar"
+     ],
+     "listes_privees": [
+      "Rappels"
+     ],
+     "adresses_ugo": [
+      "moi@exemple.ca"
+     ]
+    }
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "suppression"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Suppression, annulation ou retrait."
+    ]
+   }
+  },
+  {
+   "nom": "calendrier vers partage",
+   "entree": {
+    "type": "decider",
+    "lot": "calendrier_lot",
+    "etapes": [
+     {
+      "outil": "evenement_modifier_preparer",
+      "operation": "modifier",
+      "resume": {
+       "action": "modifier",
+       "ou": "iCloud / Calendar",
+       "vers": "iCloud / Family",
+       "trouves": [
+        "iCloud / Calendar",
+        "iCloud / Family"
+       ],
+       "nombre_invites": 0
+      }
+     }
+    ],
+    "version_app": 9,
+    "confiance": {
+     "version": 1,
+     "calendriers_prives": [
+      "iCloud / Calendar"
+     ],
+     "listes_privees": [
+      "Rappels"
+     ],
+     "adresses_ugo": [
+      "moi@exemple.ca"
+     ]
+    }
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "sortie"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Cette écriture peut quitter le Mac (calendrier ou liste partagés, invités)."
+    ]
+   }
+  },
+  {
+   "nom": "calendrier app ancienne",
+   "entree": {
+    "type": "decider",
+    "lot": "calendrier_lot",
+    "etapes": [
+     {
+      "outil": "evenement_creer_preparer",
+      "operation": "creer",
+      "resume": {
+       "action": "creer",
+       "ou": "iCloud / Calendar",
+       "vers": null,
+       "trouves": [
+        "iCloud / Calendar",
+        "iCloud / Family"
+       ],
+       "nombre_invites": 0
+      }
+     }
+    ],
+    "version_app": 8,
+    "confiance": {
+     "version": 1,
+     "calendriers_prives": [
+      "iCloud / Calendar"
+     ],
+     "listes_privees": [
+      "Rappels"
+     ],
+     "adresses_ugo": [
+      "moi@exemple.ca"
+     ]
+    }
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "app_calendrier_ancienne"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "App Calendrier trop ancienne pour écrire sans fenêtre."
+    ]
+   }
+  },
+  {
+   "nom": "calendrier app illisible",
+   "entree": {
+    "type": "decider",
+    "lot": "calendrier_lot",
+    "etapes": [
+     {
+      "outil": "evenement_creer_preparer",
+      "operation": "creer",
+      "resume": {
+       "action": "creer",
+       "ou": "iCloud / Calendar",
+       "vers": null,
+       "trouves": [
+        "iCloud / Calendar",
+        "iCloud / Family"
+       ],
+       "nombre_invites": 0
+      }
+     }
+    ],
+    "version_app": "x",
+    "confiance": {
+     "version": 1,
+     "calendriers_prives": [
+      "iCloud / Calendar"
+     ],
+     "listes_privees": [
+      "Rappels"
+     ],
+     "adresses_ugo": [
+      "moi@exemple.ca"
+     ]
+    }
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "app_calendrier_ancienne"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "App Calendrier trop ancienne pour écrire sans fenêtre."
+    ]
+   }
+  },
+  {
+   "nom": "calendrier resume mauvais",
+   "entree": {
+    "type": "decider",
+    "lot": "calendrier_lot",
+    "etapes": [
+     {
+      "outil": "evenement_creer_preparer",
+      "operation": "x",
+      "resume": {
+       "action": "voler"
+      }
+     }
+    ],
+    "version_app": 9,
+    "confiance": {
+     "version": 1,
+     "calendriers_prives": [
+      "iCloud / Calendar"
+     ],
+     "listes_privees": [
+      "Rappels"
+     ],
+     "adresses_ugo": [
+      "moi@exemple.ca"
+     ]
+    }
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "doute"
+    ],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": [
+     "Le serveur a un doute."
+    ]
+   }
+  },
+  {
+   "nom": "rappel prive",
+   "entree": {
+    "type": "decider",
+    "lot": "calendrier_lot",
+    "etapes": [
+     {
+      "outil": "rappel_creer_preparer",
+      "operation": "rappel_creer",
+      "resume": {
+       "action": "rappel_creer",
+       "ou": "Rappels",
+       "vers": null,
+       "trouves": [
+        "Rappels"
+       ],
+       "nombre_invites": 0
+      }
+     }
+    ],
+    "version_app": 9,
+    "confiance": {
+     "version": 1,
+     "calendriers_prives": [
+      "iCloud / Calendar"
+     ],
+     "listes_privees": [
+      "Rappels"
+     ],
+     "adresses_ugo": [
+      "moi@exemple.ca"
+     ]
+    }
+   },
+   "attendu": {
+    "mode": "go",
+    "raisons": [],
+    "montant": "0",
+    "etapes": 1,
+    "libelles": []
+   }
+  },
+  {
+   "nom": "plus stricte sans avant",
+   "entree": {
+    "type": "plus_stricte",
+    "avant": null,
+    "maintenant": {
+     "mode": "go",
+     "raisons": [],
+     "montant": "5",
+     "etapes": 1
+    }
+   },
+   "attendu": {
+    "mode": "go",
+    "raisons": [],
+    "montant": "5",
+    "etapes": 1
+   }
+  },
+  {
+   "nom": "plus stricte garde",
+   "entree": {
+    "type": "plus_stricte",
+    "avant": {
+     "mode": "fenetre",
+     "raisons": [
+      "sortie"
+     ],
+     "montant": "5",
+     "etapes": 1
+    },
+    "maintenant": {
+     "mode": "go",
+     "raisons": [],
+     "montant": "7",
+     "etapes": 2
+    }
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "sortie"
+    ],
+    "montant": "7",
+    "etapes": 2
+   }
+  },
+  {
+   "nom": "plus stricte ajoute",
+   "entree": {
+    "type": "plus_stricte",
+    "avant": {
+     "mode": "go",
+     "raisons": [],
+     "montant": "5",
+     "etapes": 1
+    },
+    "maintenant": {
+     "mode": "fenetre",
+     "raisons": [
+      "texte_autrui_recent"
+     ],
+     "montant": "5",
+     "etapes": 1
+    }
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "texte_autrui_recent"
+    ],
+    "montant": "5",
+    "etapes": 1
+   }
+  },
+  {
+   "nom": "plus stricte illisible",
+   "entree": {
+    "type": "plus_stricte",
+    "avant": "x",
+    "maintenant": {
+     "mode": "go",
+     "raisons": [],
+     "montant": "5",
+     "etapes": 3
+    }
+   },
+   "attendu": {
+    "mode": "fenetre",
+    "raisons": [
+     "doute"
+    ],
+    "montant": "0",
+    "etapes": 3
+   }
+  },
+  {
+   "nom": "signal ajout recent",
+   "entree": {
+    "type": "signal_ajout",
+    "signal": "recent"
+   },
+   "attendu": "recent"
+  },
+  {
+   "nom": "signal ajout ancien",
+   "entree": {
+    "type": "signal_ajout",
+    "signal": "ancien"
+   },
+   "attendu": null
+  },
+  {
+   "nom": "signal ajout aucun",
+   "entree": {
+    "type": "signal_ajout",
+    "signal": "aucun"
+   },
+   "attendu": null
+  },
+  {
+   "nom": "signal ajout absent",
+   "entree": {
+    "type": "signal_ajout",
+    "signal": "absent"
+   },
+   "attendu": "douteux"
+  },
+  {
+   "nom": "signal ajout douteux",
+   "entree": {
+    "type": "signal_ajout",
+    "signal": "douteux"
+   },
+   "attendu": "douteux"
+  }
+ ]
+}

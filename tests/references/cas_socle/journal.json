@@ -1,0 +1,724 @@
+{
+ "source": "8033ee8",
+ "famille": "journal",
+ "cas": [
+  {
+   "nom": "intention et resultat",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ]
+     },
+     {
+      "quoi": "resultat",
+      "etat": "enregistre"
+     },
+     {
+      "quoi": "du_jour"
+     },
+     {
+      "quoi": "go_du_jour"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     "ok",
+     null,
+     [
+      {
+       "id": "<id>",
+       "heure": "2030-01-15T08:00:00",
+       "outil": "WR_SAVE_DOJO_BD",
+       "lot": "lot",
+       "mode": "go",
+       "raisons": [],
+       "etapes": [
+        {
+         "numero": 1,
+         "operation": "Paiement",
+         "resume": "montant : 10"
+        }
+       ],
+       "montant": "10.00",
+       "origine": "desktop",
+       "resultat": "enregistre",
+       "detail": null
+      }
+     ],
+     "10.00"
+    ],
+    "fichiers": {
+     "2030-01.jsonl": "{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"intention\", \"outil\": \"WR_SAVE_DOJO_BD\", \"lot\": \"lot\", \"mode\": \"go\", \"raisons\": [], \"etapes\": [{\"numero\": 1, \"operation\": \"Paiement\", \"resume\": \"montant : 10\"}], \"montant\": \"10.00\", \"origine\": \"desktop\"}\n{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"resultat\", \"resultat\": \"enregistre\", \"detail\": null}\n"
+    }
+   }
+  },
+  {
+   "nom": "fenetre refusee",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ],
+      "mode": "fenetre",
+      "raisons": [
+       "sortie"
+      ]
+     },
+     {
+      "quoi": "resultat",
+      "etat": "non_confirme"
+     },
+     {
+      "quoi": "du_jour"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     "ok",
+     null,
+     [
+      {
+       "id": "<id>",
+       "heure": "2030-01-15T08:00:00",
+       "outil": "WR_SAVE_DOJO_BD",
+       "lot": "lot",
+       "mode": "fenetre",
+       "raisons": [
+        "sortie"
+       ],
+       "etapes": [
+        {
+         "numero": 1,
+         "operation": "Paiement",
+         "resume": "montant : 10"
+        }
+       ],
+       "montant": "10.00",
+       "origine": "desktop",
+       "resultat": "non_confirme",
+       "detail": null
+      }
+     ]
+    ],
+    "fichiers": {
+     "2030-01.jsonl": "{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"intention\", \"outil\": \"WR_SAVE_DOJO_BD\", \"lot\": \"lot\", \"mode\": \"fenetre\", \"raisons\": [\"sortie\"], \"etapes\": [{\"numero\": 1, \"operation\": \"Paiement\", \"resume\": \"montant : 10\"}], \"montant\": \"10.00\", \"origine\": \"desktop\"}\n{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"resultat\", \"resultat\": \"non_confirme\", \"detail\": null}\n"
+    }
+   }
+  },
+  {
+   "nom": "sans resultat inconnu",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ]
+     },
+     {
+      "quoi": "du_jour"
+     },
+     {
+      "quoi": "go_du_jour"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     "ok",
+     [
+      {
+       "id": "<id>",
+       "heure": "2030-01-15T08:00:00",
+       "outil": "WR_SAVE_DOJO_BD",
+       "lot": "lot",
+       "mode": "go",
+       "raisons": [],
+       "etapes": [
+        {
+         "numero": 1,
+         "operation": "Paiement",
+         "resume": "montant : 10"
+        }
+       ],
+       "montant": "10.00",
+       "origine": "desktop",
+       "resultat": "inconnu",
+       "detail": null
+      }
+     ],
+     "10.00"
+    ],
+    "fichiers": {
+     "2030-01.jsonl": "{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"intention\", \"outil\": \"WR_SAVE_DOJO_BD\", \"lot\": \"lot\", \"mode\": \"go\", \"raisons\": [], \"etapes\": [{\"numero\": 1, \"operation\": \"Paiement\", \"resume\": \"montant : 10\"}], \"montant\": \"10.00\", \"origine\": \"desktop\"}\n"
+    }
+   }
+  },
+  {
+   "nom": "origine app",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ],
+      "origine": "app"
+     },
+     {
+      "quoi": "du_jour"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     "ok",
+     [
+      {
+       "id": "<id>",
+       "heure": "2030-01-15T08:00:00",
+       "outil": "WR_SAVE_DOJO_BD",
+       "lot": "lot",
+       "mode": "go",
+       "raisons": [],
+       "etapes": [
+        {
+         "numero": 1,
+         "operation": "Paiement",
+         "resume": "montant : 10"
+        }
+       ],
+       "montant": "10.00",
+       "origine": "app",
+       "resultat": "inconnu",
+       "detail": null
+      }
+     ]
+    ],
+    "fichiers": {
+     "2030-01.jsonl": "{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"intention\", \"outil\": \"WR_SAVE_DOJO_BD\", \"lot\": \"lot\", \"mode\": \"go\", \"raisons\": [], \"etapes\": [{\"numero\": 1, \"operation\": \"Paiement\", \"resume\": \"montant : 10\"}], \"montant\": \"10.00\", \"origine\": \"app\"}\n"
+    }
+   }
+  },
+  {
+   "nom": "hors lot",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ],
+      "lot": null,
+      "outil": "WR_SAVE_RAPPORT_FICHIER"
+     },
+     {
+      "quoi": "resultat",
+      "etat": "refuse",
+      "detail": "non"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     "ok",
+     null
+    ],
+    "fichiers": {
+     "2030-01.jsonl": "{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"intention\", \"outil\": \"WR_SAVE_RAPPORT_FICHIER\", \"lot\": null, \"mode\": \"go\", \"raisons\": [], \"etapes\": [{\"numero\": 1, \"operation\": \"Paiement\", \"resume\": \"montant : 10\"}], \"montant\": \"10.00\", \"origine\": \"desktop\"}\n{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"resultat\", \"resultat\": \"refuse\", \"detail\": \"non\"}\n"
+    }
+   }
+  },
+  {
+   "nom": "hors wr permis",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ],
+      "lot": null,
+      "outil": "facture_deposer"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     "ok"
+    ],
+    "fichiers": {
+     "2030-01.jsonl": "{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"intention\", \"outil\": \"facture_deposer\", \"lot\": null, \"mode\": \"go\", \"raisons\": [], \"etapes\": [{\"numero\": 1, \"operation\": \"Paiement\", \"resume\": \"montant : 10\"}], \"montant\": \"10.00\", \"origine\": \"desktop\"}\n"
+    }
+   }
+  },
+  {
+   "nom": "outil refuse",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ],
+      "outil": "autre"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "exception": "JournalIndisponible",
+      "message": "Journal des écritures indisponible; rien n'est enregistré."
+     }
+    ],
+    "fichiers": {}
+   }
+  },
+  {
+   "nom": "lot refuse",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ],
+      "lot": "publication_lot"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "exception": "JournalIndisponible",
+      "message": "Journal des écritures indisponible; rien n'est enregistré."
+     }
+    ],
+    "fichiers": {}
+   }
+  },
+  {
+   "nom": "mode refuse",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ],
+      "mode": "x"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "exception": "JournalIndisponible",
+      "message": "Journal des écritures indisponible; rien n'est enregistré."
+     }
+    ],
+    "fichiers": {}
+   }
+  },
+  {
+   "nom": "origine refusee",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ],
+      "origine": "x"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "exception": "JournalIndisponible",
+      "message": "Journal des écritures indisponible; rien n'est enregistré."
+     }
+    ],
+    "fichiers": {}
+   }
+  },
+  {
+   "nom": "montant negatif",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ],
+      "montant": "-1"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "exception": "JournalIndisponible",
+      "message": "Journal des écritures indisponible; rien n'est enregistré."
+     }
+    ],
+    "fichiers": {}
+   }
+  },
+  {
+   "nom": "montant absent",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ],
+      "montant": null
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "exception": "JournalIndisponible",
+      "message": "Journal des écritures indisponible; rien n'est enregistré."
+     }
+    ],
+    "fichiers": {}
+   }
+  },
+  {
+   "nom": "etape mal formee",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1
+       }
+      ]
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "exception": "JournalIndisponible",
+      "message": "Journal des écritures indisponible; rien n'est enregistré."
+     }
+    ],
+    "fichiers": {}
+   }
+  },
+  {
+   "nom": "resultat mauvais id",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "resultat",
+      "ident": "zz",
+      "etat": "enregistre"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     "Écrit, mais le résultat n'a pas pu être ajouté au journal."
+    ],
+    "fichiers": {}
+   }
+  },
+  {
+   "nom": "resultat mauvais etat",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ]
+     },
+     {
+      "quoi": "resultat",
+      "etat": "x"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     "ok",
+     "Écrit, mais le résultat n'a pas pu être ajouté au journal."
+    ],
+    "fichiers": {
+     "2030-01.jsonl": "{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"intention\", \"outil\": \"WR_SAVE_DOJO_BD\", \"lot\": \"lot\", \"mode\": \"go\", \"raisons\": [], \"etapes\": [{\"numero\": 1, \"operation\": \"Paiement\", \"resume\": \"montant : 10\"}], \"montant\": \"10.00\", \"origine\": \"desktop\"}\n"
+    }
+   }
+  },
+  {
+   "nom": "detail tronque",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ]
+     },
+     {
+      "quoi": "resultat",
+      "etat": "refuse",
+      "detail": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     "ok",
+     null
+    ],
+    "fichiers": {
+     "2030-01.jsonl": "{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"intention\", \"outil\": \"WR_SAVE_DOJO_BD\", \"lot\": \"lot\", \"mode\": \"go\", \"raisons\": [], \"etapes\": [{\"numero\": 1, \"operation\": \"Paiement\", \"resume\": \"montant : 10\"}], \"montant\": \"10.00\", \"origine\": \"desktop\"}\n{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"resultat\", \"resultat\": \"refuse\", \"detail\": \"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}\n"
+    }
+   }
+  },
+  {
+   "nom": "dossier en lien",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "lien"
+     },
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ]
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "exception": "JournalIndisponible",
+      "message": "Journal des écritures indisponible; rien n'est enregistré."
+     }
+    ],
+    "fichiers": {}
+   }
+  },
+  {
+   "nom": "ligne coupee tolere",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ]
+     },
+     {
+      "quoi": "brut",
+      "texte": "{\"coupe"
+     },
+     {
+      "quoi": "du_jour",
+      "strict": true
+     },
+     {
+      "quoi": "go_du_jour"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     "ok",
+     [
+      {
+       "id": "<id>",
+       "heure": "2030-01-15T08:00:00",
+       "outil": "WR_SAVE_DOJO_BD",
+       "lot": "lot",
+       "mode": "go",
+       "raisons": [],
+       "etapes": [
+        {
+         "numero": 1,
+         "operation": "Paiement",
+         "resume": "montant : 10"
+        }
+       ],
+       "montant": "10.00",
+       "origine": "desktop",
+       "resultat": "inconnu",
+       "detail": null
+      }
+     ],
+     "10.00"
+    ],
+    "fichiers": {
+     "2030-01.jsonl": "{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"intention\", \"outil\": \"WR_SAVE_DOJO_BD\", \"lot\": \"lot\", \"mode\": \"go\", \"raisons\": [], \"etapes\": [{\"numero\": 1, \"operation\": \"Paiement\", \"resume\": \"montant : 10\"}], \"montant\": \"10.00\", \"origine\": \"desktop\"}\n{\"coupe"
+    }
+   }
+  },
+  {
+   "nom": "ligne illisible strict",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "intention",
+      "etapes": [
+       {
+        "numero": 1,
+        "operation": "Paiement",
+        "resume": "montant : 10"
+       }
+      ]
+     },
+     {
+      "quoi": "brut",
+      "texte": "pas du json\n{}\n"
+     },
+     {
+      "quoi": "du_jour"
+     },
+     {
+      "quoi": "go_du_jour"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     "ok",
+     [
+      {
+       "id": "<id>",
+       "heure": "2030-01-15T08:00:00",
+       "outil": "WR_SAVE_DOJO_BD",
+       "lot": "lot",
+       "mode": "go",
+       "raisons": [],
+       "etapes": [
+        {
+         "numero": 1,
+         "operation": "Paiement",
+         "resume": "montant : 10"
+        }
+       ],
+       "montant": "10.00",
+       "origine": "desktop",
+       "resultat": "inconnu",
+       "detail": null
+      }
+     ],
+     {
+      "exception": "JSONDecodeError",
+      "message": "Expecting value: line 1 column 1 (char 0)"
+     }
+    ],
+    "fichiers": {
+     "2030-01.jsonl": "{\"id\": \"<id>\", \"heure\": \"2030-01-15T08:00:00\", \"type\": \"intention\", \"outil\": \"WR_SAVE_DOJO_BD\", \"lot\": \"lot\", \"mode\": \"go\", \"raisons\": [], \"etapes\": [{\"numero\": 1, \"operation\": \"Paiement\", \"resume\": \"montant : 10\"}], \"montant\": \"10.00\", \"origine\": \"desktop\"}\npas du json\n{}\n"
+    }
+   }
+  },
+  {
+   "nom": "montant illisible au journal",
+   "entree": {
+    "actions": [
+     {
+      "quoi": "brut",
+      "texte": "{\"id\": \"a\", \"type\": \"intention\", \"heure\": \"2030-01-15T08:00:00\", \"mode\": \"go\", \"montant\": \"x\"}\n"
+     },
+     {
+      "quoi": "go_du_jour"
+     }
+    ]
+   },
+   "attendu": {
+    "sortie": [
+     {
+      "exception": "ValueError",
+      "message": "montant illisible au journal"
+     }
+    ],
+    "fichiers": {
+     "2030-01.jsonl": "{\"id\": \"a\", \"type\": \"intention\", \"heure\": \"2030-01-15T08:00:00\", \"mode\": \"go\", \"montant\": \"x\"}\n"
+    }
+   }
+  }
+ ]
+}
