@@ -1,6 +1,6 @@
 """Finances writer and reader, whitelisted CLI. Money is integer cents; each command takes one JSON argument.
 
-Writes print "OK : ..." on success (the MCP lot checks it); reads print JSON. Dojo income comes from the reading Dojo exposes (agents.dojo.paiements).
+Writes print "OK : ..." on success (the MCP lot checks it); reads print JSON. Dojo income comes from the reading Dojo exposes (moneta.lecture_dojo).
 """
 from contextlib import closing
 from datetime import date, datetime
@@ -10,20 +10,18 @@ from pathlib import Path
 import sqlite3
 import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from core.paths import finances_db  # noqa: E402
-from agents.dojo.paiements import totaux_annee  # noqa: E402
-from core.factures import valid_stored  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from moneta.chemins import finances_db  # noqa: E402
+from moneta.lecture_dojo import totaux_annee  # noqa: E402
+from socle.lots import ToolError  # noqa: E402
+from moneta.outils.factures import valid_stored  # noqa: E402
 
-# Always the module finances.banque, never a second copy named banque: the refusals raised by finances/releves must be
+# Always the module moneta.finances.banque, never a second copy named banque: the refusals raised by finances/releves must be
 # the same class as the ones caught here.
-if __package__:
-    from . import banque
-else:
-    from finances import banque  # noqa: E402
-from finances.releves import chaine  # noqa: E402
-from finances import points  # noqa: E402
-from finances import budget  # noqa: E402
+from moneta.finances import banque  # noqa: E402
+from moneta.finances.releves import chaine  # noqa: E402
+from moneta.finances import points  # noqa: E402
+from moneta.finances import budget  # noqa: E402
 
 MODES = ('comptant', 'carte', 'virement', 'cheque')
 INCOME_TYPES = ('abonnement', 'equipement', 'kimono', 'guide', 'passage', 'autre')
@@ -596,7 +594,8 @@ def main(argv):
         else:
             print('ERREUR : commande invalide.')
             return 1
-    except Refus as exc:
+    except (Refus, ToolError) as exc:
+        # ToolError : les paiements de Dojo n'ont pas pu être lus (moneta.lecture_dojo); jamais un zéro.
         print(f'ERREUR : {exc}')
         return 1
     except (ValueError, sqlite3.Error):

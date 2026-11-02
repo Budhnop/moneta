@@ -1,14 +1,14 @@
 #!/bin/zsh
-# Compile agent-smith-releve (PDFKit de macOS : texte d'un relevé PDF, sans rien interpréter) dans $UGOD_HOME/apps, pour les relevés bancaires.
+# Compile moneta-releve (PDFKit de macOS : texte d'un relevé PDF, sans rien interpréter) dans $MONETA_HOME/apps, pour les relevés bancaires.
 # Le programme neuf est construit, signé et vérifié à côté, puis mis en place d'un coup. Programmes par leur chemin complet.
 set -eu
 ROOT="${0:A:h:h}"
-CODE="$ROOT/assistant/releve"
-export UGOD_HOME="${UGOD_HOME:-$HOME/_PersonalAgents/donnees/smith}"
-APPS="$UGOD_HOME/apps"
-BIN="$APPS/agent-smith-releve"
-NEW="$APPS/.agent-smith-releve.neuf"
-/bin/mkdir -p "$APPS"
+CODE="$ROOT/moneta/releve"
+MONETA_HOME="${MONETA_HOME:-$HOME/_PersonalAgents/donnees/moneta}"
+APPS="$MONETA_HOME/apps"
+BIN="$APPS/moneta-releve"
+NEW="$APPS/.moneta-releve.neuf"
+/bin/mkdir -p -m 700 "$APPS"
 /bin/rm -f "$NEW"
 /usr/bin/swiftc -O -o "$NEW" "$CODE/main.swift"
 /usr/bin/codesign -s - --force "$NEW"

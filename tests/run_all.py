@@ -16,8 +16,8 @@ ROOT = Path(__file__).resolve().parent.parent
 TESTS = ROOT / 'tests'
 DELAI = 600
 # Variables qui pourraient mener un test vers de vraies données : jamais héritées.
-RETIREES = ('MONETA_HOME', 'MONETA_LECTURE_PAIEMENTS', 'UGOD_HOME', 'UGOD_DB', 'UGOD_FINANCES_DB', 'UGOD_DRIVE_DOSSIER',
-            'UGOD_SIGNAL_TEXTE', 'UGOD_SAUVEGARDE_DESTINATION', 'UGOD_CONFIRMATION')
+RETIREES = ('MONETA_HOME', 'MONETA_FINANCES_DB', 'MONETA_DRIVE_DOSSIER', 'MONETA_LECTURE_PAIEMENTS', 'UGOD_HOME', 'UGOD_DB',
+            'UGOD_FINANCES_DB', 'UGOD_DRIVE_DOSSIER', 'UGOD_SIGNAL_TEXTE', 'UGOD_SAUVEGARDE_DESTINATION', 'UGOD_CONFIRMATION')
 
 
 def executer(nom):
@@ -25,7 +25,7 @@ def executer(nom):
     with tempfile.TemporaryDirectory(prefix='moneta-tests-') as monde:
         env = {k: v for k, v in os.environ.items() if k not in RETIREES}
         env.update(PYTHONPATH=str(ROOT), PYTHONDONTWRITEBYTECODE='1', MONETA_HOME=str(Path(monde) / 'donnees'),
-                   UGOD_DRIVE_DOSSIER=str(Path(monde) / 'drive'), UGOD_CONFIRMATION='automatique')
+                   MONETA_DRIVE_DOSSIER=str(Path(monde) / 'drive'), UGOD_CONFIRMATION='automatique')
         (Path(monde) / 'drive').mkdir()
         try:
             fait = subprocess.run([sys.executable, str(TESTS / nom)], cwd=ROOT, env=env, capture_output=True, text=True,

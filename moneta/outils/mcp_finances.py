@@ -8,16 +8,17 @@ import json
 
 import base64
 
-from core import regles
-from core import factures
+from moneta import regles
+from moneta.outils import factures
 from socle import externe
-from core.executor import execute_safe
-from core.paths import home
-from core.services.mcp_adapter import READ_ONLY, ToolError, WithImages, confirmed_on_mac
-from core.services.mcp_writes import NOTHING, Lot, Operation, Proposal, args
-from finances import natures
+from moneta.outils.executeur import execute_safe
+from moneta.chemins import home
+from moneta.outils.lot import Lot, WithImages
+from socle.lots import NOTHING, READ_ONLY, Operation, Proposal, ToolError, args
+from socle.mcp import confirmed_on_mac
+from moneta.finances import natures
 
-VARIABLE = 'UGOD_FINANCES_DB'
+VARIABLE = 'MONETA_FINANCES_DB'
 MODES = ('comptant', 'carte', 'virement', 'cheque')
 
 READ_INSTRUCTIONS = (
@@ -191,7 +192,7 @@ def report(arguments):
 
 
 def printable_report(arguments):
-    from core.finances_report import write_report
+    from moneta.outils.rapport import write_report
     data = full_report(arguments)
     confirmed_on_mac('WR_SAVE_RAPPORT_FICHIER — fichier HTML',
                      [f"Rapport financier {data['annee']} (page HTML), dans {home() / 'exports'}",

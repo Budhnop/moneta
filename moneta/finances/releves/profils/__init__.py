@@ -12,9 +12,9 @@ REGISTRE = []
 
 def registre():
     """The profiles in use: the real ones, plus the fictitious ones of the tests only on fictitious data."""
-    import core  # noqa: F401  déclare Smith au socle
+    import moneta  # noqa: F401  déclare Moneta au socle
     from socle import confirmation
     if not confirmation.fictitious():
         return list(REGISTRE)
-    from finances.releves.profils import fictif
+    from moneta.finances.releves.profils import fictif
     return [*REGISTRE, fictif.FOLIO, fictif.COBALT, fictif.MARGE]

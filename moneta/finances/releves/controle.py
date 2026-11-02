@@ -8,8 +8,8 @@ atteignent le modèle : ils nomment la vérification et le compte masqué, jamai
 from datetime import date
 import re
 
-from finances.banque import MAX_ACCOUNTS, MAX_CENTS, MAX_LINES, RefusBanque, clean, masked, sha
-from finances.releves.profils import NOMS, SOURCES, registre
+from moneta.finances.banque import MAX_ACCOUNTS, MAX_CENTS, MAX_LINES, RefusBanque, clean, masked, sha
+from moneta.finances.releves.profils import NOMS, SOURCES, registre
 
 TYPES = ('banque', 'carte', 'marge')
 # Genre of a line, with the sign it must have: + entrée, - sortie (research R11).

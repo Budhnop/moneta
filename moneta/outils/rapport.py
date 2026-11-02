@@ -2,7 +2,7 @@
 from datetime import datetime
 from html import escape
 
-from core.paths import exports, private_folder, write_private
+from moneta.chemins import exports, private_folder, write_private
 
 MODES = {'comptant': 'Comptant', 'virement': 'Virement', 'non_precise': 'Mode non précisé'}
 MISSING = {'piece': 'reçu', 'fournisseur': 'fournisseur', 'mode': 'mode de paiement'}

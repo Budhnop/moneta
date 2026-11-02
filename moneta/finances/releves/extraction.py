@@ -1,6 +1,6 @@
-"""Texte d'un relevé PDF lu sur le Mac par agent-smith-releve (PDFKit; bin/smith-construire-releve), sans service extérieur.
+"""Texte d'un relevé PDF lu sur le Mac par moneta-releve (PDFKit; bin/moneta-construire-releve), sans service extérieur.
 
-Le programme reçoit une copie privée des octets déjà lus et vérifiés par finances.banque (l'empreinte porte donc sur ce qui
+Le programme reçoit une copie privée des octets déjà lus et vérifiés par moneta.finances.banque (l'empreinte porte donc sur ce qui
 est lu). Il ne rend que des segments de texte positionnés; leur lecture appartient aux profils. Sa réponse est vérifiée ici
 avant d'aller plus loin.
 """
@@ -9,10 +9,10 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-from core.paths import home
-from finances.banque import RefusBanque
+from moneta.chemins import releve
+from moneta.finances.banque import RefusBanque
 
-TIMEOUT = 12  # inside the 15 s the finances command has (core/executor.py)
+TIMEOUT = 12  # inside the 15 s the finances command has (moneta/outils/executeur.py)
 MAX_PAGES = 50
 MAX_SEGMENTS = 100_000
 MAX_TEXT = 500
@@ -20,7 +20,7 @@ MAX_OUTPUT = 2_000_000
 
 
 def program():
-    return home() / 'apps' / 'agent-smith-releve'
+    return releve()
 
 
 def _number(value):
@@ -56,13 +56,13 @@ def check(reply):
 
 
 def pages(raw):
-    """Positioned text of the PDF bytes raw, read by agent-smith-releve from a private temporary copy."""
+    """Positioned text of the PDF bytes raw, read by moneta-releve from a private temporary copy."""
     helper = program()
     if not helper.is_file():
-        raise RefusBanque('Lecteur de relevés PDF absent sur le Mac : lancer bin/smith-construire-releve.')
+        raise RefusBanque('Lecteur de relevés PDF absent sur le Mac : lancer bin/moneta-construire-releve.')
     if not raw.startswith(b'%PDF-'):
         raise RefusBanque("Ce fichier n'est pas un PDF.")
-    with tempfile.TemporaryDirectory(prefix='smith-releve-') as folder:
+    with tempfile.TemporaryDirectory(prefix='moneta-releve-') as folder:
         copy = Path(folder) / 'releve.pdf'
         copy.write_bytes(raw)
         copy.chmod(0o600)

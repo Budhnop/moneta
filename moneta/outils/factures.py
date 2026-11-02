@@ -17,9 +17,19 @@ import tempfile
 import time
 import unicodedata
 
-from core.paths import drive
-from core.services.mcp_adapter import ToolError
-from core.services.mcp_drive import ADMIN, reserved, same_name
+from moneta.chemins import drive
+from socle.lots import ToolError
+from socle import sorties
+from socle.sorties import same_name
+
+# Le dossier DojoD d'Ugo (D066), comme dans core/services/mcp_drive.py de Smith : les sauvegardes y restent réservées (D056).
+DOJOD = 'DojoD'
+ADMIN = f'{DOJOD}/05 Administration'
+RESERVED = (f'{ADMIN}/Sauvegardes', 'Agent Smith/sauvegardes', 'Agent Smith sauvegardes')
+
+
+def reserved(root, target):
+    return sorties.reserved(root, target, RESERVED)
 
 FOLDER = f'{ADMIN}/Factures'
 INBOX_NAME = 'à classer'

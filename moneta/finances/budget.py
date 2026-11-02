@@ -14,7 +14,7 @@ from calendar import monthrange
 from datetime import date
 from fractions import Fraction
 
-from finances.releves import chaine
+from moneta.finances.releves import chaine
 
 FIRST = '2026-01'  # the chain of statements starts on 2026-01-01
 MAX_CENTS = 10_000_000  # 100 000 $

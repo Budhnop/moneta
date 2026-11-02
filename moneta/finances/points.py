@@ -12,7 +12,7 @@ from datetime import date, timedelta
 from fractions import Fraction
 import math
 
-from finances.releves import chaine
+from moneta.finances.releves import chaine
 
 HISTORY = 24
 PACE_STATEMENTS = 6

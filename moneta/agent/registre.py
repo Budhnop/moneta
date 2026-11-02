@@ -1,8 +1,8 @@
-"""Finances : tous les comptes. Dans ce jalon, des sources lisibles sans Autoriser seulement (constitution V)."""
-from agents.registre import Agent, Outil, Source, gestion, lecture, preparation
+"""Moneta : tous les comptes (Finances de Smith jusqu'à la spec 013). Dans ce jalon, des sources lisibles sans Autoriser seulement (constitution V)."""
+from moneta.agent.droits import Agent, Outil, Source, gestion, lecture, preparation
 
 AGENT = Agent(
-    id='finances', nom='Finances', statut='en construction',
+    id='moneta', nom='Moneta', statut='en construction',
     outils=(
         Outil('facture_deposer', 'depot'),
         *lecture('finances_reference', 'finances_depenses', 'finances_revenus', 'finances_rapport', 'finances_historique',

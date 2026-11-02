@@ -1,4 +1,4 @@
-"""Sources de lecture de Finances : totaux et détails annuels du compte Dojo.
+"""Sources de lecture de Moneta : totaux et détails annuels du compte Dojo.
 Les descriptions des détails sont marquées texte externe par l'adaptateur."""
 from contextlib import closing
 from datetime import date
@@ -8,13 +8,13 @@ import sqlite3
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from core.paths import finances_db  # noqa: E402
-from agents.dojo.paiements import lignes_annee, totaux_annee  # noqa: E402
-from finances.finances import points_read, connect
-from finances.banque import filtres_operations, TABLES_OPERATIONS
-from finances.releves.chaine import PERIODES_PDF, PERIODES_OFX
-from core.factures import inbox
-from agents.cadrans import lire_anneaux  # noqa: E402
+from moneta.chemins import finances_db  # noqa: E402
+from moneta.lecture_dojo import lignes_annee, totaux_annee  # noqa: E402
+from moneta.finances.finances import points_read, connect
+from moneta.finances.banque import filtres_operations, TABLES_OPERATIONS
+from moneta.finances.releves.chaine import PERIODES_PDF, PERIODES_OFX
+from moneta.outils.factures import inbox
+from moneta.agent.cadrans import lire_anneaux  # noqa: E402
 
 
 def points(cle, sinon):

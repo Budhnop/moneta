@@ -1,6 +1,6 @@
 """Relevés bancaires : lecture OFX ou PDF (spec 003), comptes reconnus par empreinte, règles de classement, opérations à classer.
 
-Le fichier n'est lu que dans le dossier imports de UGOD_HOME, jamais copié dans la base; le numéro de compte n'est gardé
+Le fichier n'est lu que dans le dossier imports de Moneta (MONETA_HOME en test), jamais copié dans la base; le numéro de compte n'est gardé
 que sous forme d'empreinte et d'aperçu masqué. Aucun analyseur XML : un relevé OFX est lu par balises, sans entités externes.
 Un relevé PDF est lu sur le Mac (finances/releves) : soldes contrôlés au cent près, soldes et points gardés par relevé.
 """
@@ -13,7 +13,7 @@ import re
 import stat
 import unicodedata
 
-from core.paths import home
+from moneta.chemins import home
 
 MAX_BYTES = 2_000_000
 MAX_PDF_BYTES = 10_000_000
@@ -202,7 +202,7 @@ def load(name):
     raw = read_file(name)
     footprint = hashlib.sha256(raw).hexdigest()
     if name.lower().endswith('.pdf'):
-        from finances.releves import controle, extraction
+        from moneta.finances.releves import controle, extraction
         return footprint, {**controle.read(extraction.pages(raw)), 'format': 'pdf'}
     parsed = parse_ofx(raw)
     dates = [line['date'] for account in parsed['comptes'] for line in account['lignes']]
@@ -581,7 +581,7 @@ def analyse(con, data):
     already = con.execute('SELECT 1 FROM imports WHERE empreinte=?', (footprint,)).fetchone() is not None
     out = summary(accounts, missing, footprint, already, parsed, reconciled)
     # What would still be missing for these accounts once this statement is in (FR-017): dates only.
-    from finances.releves import chaine
+    from moneta.finances.releves import chaine
     gaps = {}
     for account in accounts:
         if account['compte'] in (None, IGNORE) or not account['du']:
