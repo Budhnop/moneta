@@ -14,6 +14,7 @@ MIGRATIONS = PAQUET / "migrations" / "finances"
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Migrations numérotées de la base de Moneta.")
     parser.add_argument("--appliquer", action="store_true", help="Appliquer les migrations en attente (sinon : statut seulement).")
+    parser.add_argument("--base", choices=["finances"], help="La seule base de Moneta (comme bin/smith-migrer --base finances).")
     args = parser.parse_args(argv)
     db = finances_db()
     try:

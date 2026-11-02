@@ -17,10 +17,23 @@ SOUS_DOSSIERS = ("database", "backups", "exports", "imports", "private", "apps",
 
 
 def _hors_personnel(chemin):
+    """Vrai seulement loin de ~/_PersonalAgents, comparé par le dossier lui-même (casse, lien ou /System/Volumes/Data compris)."""
     chemin = Path(os.path.abspath(chemin))
-    reel = Path(os.path.realpath(chemin))
-    return all(not p.casefold().startswith(str(PERSONNEL).casefold().rstrip("/") + "/") and p.casefold() != str(PERSONNEL).casefold()
-               for p in (str(chemin), str(reel)))
+    texte = str(PERSONNEL).casefold()
+    if any(str(p).casefold() == texte or str(p).casefold().startswith(texte + "/") for p in (chemin, Path(os.path.realpath(chemin)))):
+        return False
+    try:
+        info = os.stat(PERSONNEL)
+    except OSError:
+        return True
+    for dossier in (chemin, *chemin.parents):
+        try:
+            trouve = os.stat(dossier)
+        except OSError:
+            continue
+        if (trouve.st_dev, trouve.st_ino) == (info.st_dev, info.st_ino):
+            return False
+    return True
 
 
 def home():

@@ -1,7 +1,8 @@
 """Toute la suite de Moneta : chaque fichier test_*.py dans son propre monde fictif, en parallèle.
 
 Depuis la racine : bin/moneta-tests [fichiers...]. MONETA_HOME, le Drive et la fenêtre du Mac sont fictifs pour chaque fichier;
-aucune donnée réelle n'est lue. La dernière ligne dit TOUT EST VERT ou ÉCHEC, avec le nombre de tests.
+aucune donnée réelle n'est lue. MONETA_TESTS_SMITH : le dépôt de Smith dont les tests lancent le Dojo fictif (avant la mise en
+service, le worktree de la spec 013). La dernière ligne dit TOUT EST VERT ou ÉCHEC, avec le nombre de tests.
 """
 from concurrent.futures import ThreadPoolExecutor
 import os
@@ -25,7 +26,10 @@ def executer(nom):
     with tempfile.TemporaryDirectory(prefix='moneta-tests-') as monde:
         env = {k: v for k, v in os.environ.items() if k not in RETIREES}
         env.update(PYTHONPATH=str(ROOT), PYTHONDONTWRITEBYTECODE='1', MONETA_HOME=str(Path(monde) / 'donnees'),
-                   MONETA_DRIVE_DOSSIER=str(Path(monde) / 'drive'), UGOD_CONFIRMATION='automatique')
+                   MONETA_DRIVE_DOSSIER=str(Path(monde) / 'drive'), UGOD_CONFIRMATION='automatique',
+                   # Aucun paiement par défaut : seul un Dojo fictif (tests/outils_tests.seed_fictive) mène au programme de Smith.
+                   MONETA_LECTURE_PAIEMENTS=str(ROOT / 'moneta' / 'scripts' / 'paiements_fictifs.py'),
+                   MONETA_TESTS_SMITH=os.environ.get('MONETA_TESTS_SMITH') or str(Path.home() / '_PersonalAgents' / 'smith'))
         (Path(monde) / 'drive').mkdir()
         try:
             fait = subprocess.run([sys.executable, str(TESTS / nom)], cwd=ROOT, env=env, capture_output=True, text=True,
