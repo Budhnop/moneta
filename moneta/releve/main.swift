@@ -1,5 +1,5 @@
-// agent-smith-releve : lit le texte d'un relevé PDF avec PDFKit (macOS), sans service extérieur, sans rien écrire.
-// Usage : agent-smith-releve <relevé.pdf>
+// moneta-releve : lit le texte d'un relevé PDF avec PDFKit (macOS), sans service extérieur, sans rien écrire.
+// Usage : moneta-releve <relevé.pdf>
 // Répond une ligne JSON : {"pages": [{"numero": n, "largeur": l, "hauteur": h, "lignes": [{"x": x, "y": y, "texte": "..."}]}]}
 // ou {"erreur": "..."}. Une « ligne » est un segment de texte : x et y en points depuis le coin en haut à gauche;
 // de haut en bas, puis de gauche à droite.
@@ -74,7 +74,7 @@ func segments(_ document: PDFDocument, _ page: PDFPage, _ box: CGRect) -> [[Stri
 }
 
 let arguments = CommandLine.arguments
-guard arguments.count == 2 else { reply(["erreur": "usage : agent-smith-releve <relevé.pdf>"]) }
+guard arguments.count == 2 else { reply(["erreur": "usage : moneta-releve <relevé.pdf>"]) }
 let url = URL(fileURLWithPath: arguments[1])
 guard let document = PDFDocument(url: url) else { reply(["erreur": "PDF illisible"]) }
 guard !document.isEncrypted, !document.isLocked else { reply(["erreur": "PDF chiffré ou protégé par mot de passe"]) }

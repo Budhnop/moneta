@@ -1,6 +1,7 @@
 #!/bin/zsh
 # Compile moneta-releve (PDFKit de macOS : texte d'un relevé PDF, sans rien interpréter) dans $MONETA_HOME/apps, pour les relevés bancaires.
 # Le programme neuf est construit, signé et vérifié à côté, puis mis en place d'un coup. Programmes par leur chemin complet.
+# Toujours construit ici depuis moneta/releve, jamais copié de l'ancien lecteur de Smith (apps/agent-smith-releve, spec 013).
 set -eu
 ROOT="${0:A:h:h}"
 CODE="$ROOT/moneta/releve"
@@ -8,9 +9,17 @@ MONETA_HOME="${MONETA_HOME:-$HOME/_PersonalAgents/donnees/moneta}"
 APPS="$MONETA_HOME/apps"
 BIN="$APPS/moneta-releve"
 NEW="$APPS/.moneta-releve.neuf"
+# Jamais à travers un lien : le lecteur irait ailleurs que dans les données de Moneta.
+if [[ -L "$MONETA_HOME" || -L "$APPS" || -L "$BIN" ]]; then
+  echo "Refusé : $APPS ou $BIN est un lien." >&2
+  exit 1
+fi
 /bin/mkdir -p -m 700 "$APPS"
+/bin/chmod 700 "$APPS"
 /bin/rm -f "$NEW"
 /usr/bin/swiftc -O -o "$NEW" "$CODE/main.swift"
+# Seul fichier des données de Moneta en 700 (exécutable), comme le contrôle moneta-verifier l'attend.
+/bin/chmod 700 "$NEW"
 /usr/bin/codesign -s - --force "$NEW"
 /usr/bin/codesign --verify --strict "$NEW"
 /bin/mv -f "$NEW" "$BIN"

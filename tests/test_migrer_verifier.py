@@ -15,6 +15,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 HOME = Path(os.environ['MONETA_HOME'])
 INBOX = Path(os.environ['MONETA_DRIVE_DOSSIER']) / 'DojoD' / '05 Administration' / 'Factures' / 'à classer'
+LECTEUR = HOME / 'apps' / 'moneta-releve'
 
 
 def lancer(programme, *arguments):
@@ -35,6 +36,10 @@ class TestMigrerVerifier(unittest.TestCase):
         HOME.mkdir(parents=True)
         HOME.chmod(0o700)
         INBOX.mkdir(parents=True, exist_ok=True)
+        # Un faux lecteur, exécutable en 700 comme le pose bin/moneta-construire-releve (T066).
+        LECTEUR.parent.mkdir(mode=0o700)
+        LECTEUR.write_text('#!/bin/sh\nexit 0\n')
+        LECTEUR.chmod(0o700)
 
     def base(self):
         return HOME / 'database' / 'finances.db'
@@ -127,6 +132,40 @@ class TestMigrerVerifier(unittest.TestCase):
         code, valeur = verdict()
         self.assertEqual(code, 0)
         self.assertIn({'ok': True, 'texte': texte, 'corriger': ''}, valeur['controles'])
+
+    def test_lecteur_de_releves(self):
+        # Spec 013, T066 : le contrôle du lecteur, fait par smith-verifier jusqu'à T051, passe à moneta-verifier. Le lecteur
+        # est le seul fichier des données de Moneta en 700 (exécutable), et il doit l'être : en 600 il ne se lance pas, en 755
+        # il sort des modes privés.
+        lancer('moneta-migrer', '--appliquer')
+        texte = 'Lecteur de relevés PDF présent (moneta-releve)'
+        self.assertIn({'ok': True, 'texte': texte, 'corriger': ''}, verdict()[1]['controles'])
+        LECTEUR.unlink()
+        code, valeur = verdict()
+        self.assertEqual(code, 1)
+        self.assertEqual(valeur['controles'][-1]['texte'], texte)
+        self.assertEqual([c['corriger'] for c in valeur['controles'] if not c['ok']],
+                         ['lancer bin/moneta-construire-releve (sans lui, aucun relevé PDF ne se lit)'])
+        for mode, mauvais in ((0o600, ['Données de Moneta : mode, lien ou propriétaire', texte]),
+                              (0o755, ['Données de Moneta : mode, lien ou propriétaire'])):
+            with self.subTest(mode=oct(mode)):
+                LECTEUR.write_text('#!/bin/sh\nexit 0\n')
+                LECTEUR.chmod(mode)
+                code, valeur = verdict()
+                self.assertEqual(code, 1)
+                self.assertEqual(sorted(c['texte'] for c in valeur['controles'] if not c['ok']), mauvais)
+                LECTEUR.unlink()
+        LECTEUR.symlink_to('/bin/sh')
+        self.assertEqual(sorted(c['texte'] for c in verdict()[1]['controles'] if not c['ok']),
+                         ['Données de Moneta : mode, lien ou propriétaire', texte])
+        LECTEUR.unlink()
+        # Un autre fichier des apps en 700 reste refusé : l'exception est le lecteur seul.
+        (HOME / 'apps' / 'autre').write_text('x')
+        (HOME / 'apps' / 'autre').chmod(0o700)
+        LECTEUR.write_text('#!/bin/sh\nexit 0\n')
+        LECTEUR.chmod(0o700)
+        self.assertEqual([c['texte'] for c in verdict()[1]['controles'] if not c['ok']],
+                         ['Données de Moneta : mode, lien ou propriétaire'])
 
     def test_sans_json(self):
         lancer('moneta-migrer', '--appliquer')

@@ -1,5 +1,6 @@
 """État propre de Moneta (spec 013, contrat verificateur-agents) : base lisible, migrations à jour, dossiers à Ugo seulement,
-et le dossier « à classer » des factures dans Google Drive (contrôle repris de smith-verifier, T051).
+le dossier « à classer » des factures dans Google Drive (contrôle repris de smith-verifier, T051) et le lecteur de relevés PDF
+(T066).
 
 --json : {"version": 1, "ok", "controles": [{"ok", "texte", "corriger"}]}, lu par smith-verifier (30 secondes, sans entrée).
 Les textes sont fermés : aucun texte de la base n'en sort, seulement les chemins de Moneta.
@@ -13,7 +14,7 @@ import stat
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from moneta.chemins import PAQUET, finances_db, home  # noqa: E402
+from moneta.chemins import PAQUET, finances_db, home, releve  # noqa: E402
 from moneta.outils.factures import INBOX, inbox_present  # noqa: E402
 from socle.migrations import changed, pending  # noqa: E402
 
@@ -27,13 +28,15 @@ def controle(ok, texte, corriger=""):
 
 
 def donnees(racine):
-    """Dossiers en 700, fichiers en 600, aucun lien, tout à l'utilisateur."""
+    """Dossiers en 700, fichiers en 600 sauf le lecteur de relevés en 700, aucun lien, tout à l'utilisateur."""
+    programme = os.path.join(racine, "apps", "moneta-releve")
     try:
         if not racine.exists():
             return controle(True, "Données de Moneta : dossier absent")
         mauvais = False
         for dossier, sous, fichiers in os.walk(racine, followlinks=False):
-            for nom, attendu in [(dossier, 0o700)] + [(os.path.join(dossier, f), 0o600) for f in fichiers] \
+            chemins = [os.path.join(dossier, f) for f in fichiers]
+            for nom, attendu in [(dossier, 0o700)] + [(c, 0o700 if c == programme else 0o600) for c in chemins] \
                     + [(os.path.join(dossier, s), None) for s in sous]:
                 info = os.lstat(nom)
                 if stat.S_ISLNK(info.st_mode) or info.st_uid != os.getuid() \
@@ -44,7 +47,7 @@ def donnees(racine):
     if mauvais:
         return controle(False, "Données de Moneta : mode, lien ou propriétaire",
                         f"find {racine} -type d -exec chmod 700 {{}} + ; find {racine} -type f -exec chmod 600 {{}} + "
-                        "; retirer les liens")
+                        "; retirer les liens; puis bin/moneta-construire-releve")
     return controle(True, "Données de Moneta : 700 et 600, aucun lien")
 
 
@@ -71,8 +74,16 @@ def factures():
                     "le créer dans Google Drive (depuis le Mac ou le téléphone)")
 
 
+def lecteur():
+    """Le lecteur de relevés PDF, comme smith-verifier le contrôlait avant la spec 013 : un fichier exécutable, jamais un lien."""
+    chemin = releve()
+    present = chemin.is_file() and not chemin.is_symlink() and os.access(chemin, os.X_OK)
+    return controle(present, "Lecteur de relevés PDF présent (moneta-releve)",
+                    "lancer bin/moneta-construire-releve (sans lui, aucun relevé PDF ne se lit)")
+
+
 def verifier():
-    controles = [donnees(home()), *base(finances_db()), factures()]
+    controles = [donnees(home()), *base(finances_db()), factures(), lecteur()]
     return {"version": VERSION, "ok": all(c["ok"] for c in controles), "controles": controles}
 
 
