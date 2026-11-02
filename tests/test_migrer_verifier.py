@@ -14,6 +14,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 HOME = Path(os.environ['MONETA_HOME'])
+INBOX = Path(os.environ['MONETA_DRIVE_DOSSIER']) / 'DojoD' / '05 Administration' / 'Factures' / 'à classer'
 
 
 def lancer(programme, *arguments):
@@ -33,6 +34,7 @@ class TestMigrerVerifier(unittest.TestCase):
         shutil.rmtree(HOME, ignore_errors=True)
         HOME.mkdir(parents=True)
         HOME.chmod(0o700)
+        INBOX.mkdir(parents=True, exist_ok=True)
 
     def base(self):
         return HOME / 'database' / 'finances.db'
@@ -94,6 +96,23 @@ class TestMigrerVerifier(unittest.TestCase):
                 finally:
                     reparer()
         self.assertEqual(verdict()[0], 0)
+
+    def test_dossier_des_factures(self):
+        lancer('moneta-migrer', '--appliquer')
+        texte = 'Dossier des factures « DojoD/05 Administration/Factures/à classer » dans Google Drive'
+        INBOX.rmdir()
+        try:
+            code, valeur = verdict()
+            self.assertEqual(code, 1)
+            self.assertEqual([c['texte'] for c in valeur['controles'] if not c['ok']], [texte])
+            INBOX.symlink_to(HOME)
+            self.assertEqual(verdict()[0], 1)
+            INBOX.unlink()
+        finally:
+            INBOX.mkdir(exist_ok=True)
+        code, valeur = verdict()
+        self.assertEqual(code, 0)
+        self.assertIn({'ok': True, 'texte': texte, 'corriger': ''}, valeur['controles'])
 
     def test_sans_json(self):
         lancer('moneta-migrer', '--appliquer')

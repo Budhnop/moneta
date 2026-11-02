@@ -116,6 +116,12 @@ def _read(folder_fd, name, label):
         return handle.read(MAX_BYTES + 1)
 
 
+def inbox_present():
+    """True when the inbox is a real folder of the Drive, not a link (moneta-verifier; its name only, nothing read in it)."""
+    folder = drive().joinpath(*Path(INBOX).parts)
+    return folder.is_dir() and not folder.is_symlink()
+
+
 def inbox():
     """The receipts waiting in the inbox: [{nom, ko, depose_le}], newest first."""
     try:

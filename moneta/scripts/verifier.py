@@ -1,4 +1,5 @@
-"""État propre de Moneta (spec 013, contrat verificateur-agents) : base lisible, migrations à jour, dossiers à Ugo seulement.
+"""État propre de Moneta (spec 013, contrat verificateur-agents) : base lisible, migrations à jour, dossiers à Ugo seulement,
+et le dossier « à classer » des factures dans Google Drive (contrôle repris de smith-verifier, T051).
 
 --json : {"version": 1, "ok", "controles": [{"ok", "texte", "corriger"}]}, lu par smith-verifier (30 secondes, sans entrée).
 Les textes sont fermés : aucun texte de la base n'en sort, seulement les chemins de Moneta.
@@ -13,6 +14,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from moneta.chemins import PAQUET, finances_db, home  # noqa: E402
+from moneta.outils.factures import INBOX, inbox_present  # noqa: E402
 from socle.migrations import changed, pending  # noqa: E402
 
 MIGRATIONS = PAQUET / "migrations" / "finances"
@@ -63,8 +65,14 @@ def base(db):
                      "revoir moneta/migrations/finances avant toute écriture")]
 
 
+def factures():
+    """Le dossier où Ugo dépose les factures, comme smith-verifier le contrôlait avant la spec 013 : son nom seulement."""
+    return controle(inbox_present(), f"Dossier des factures « {INBOX} » dans Google Drive",
+                    "le créer dans Google Drive (depuis le Mac ou le téléphone)")
+
+
 def verifier():
-    controles = [donnees(home()), *base(finances_db())]
+    controles = [donnees(home()), *base(finances_db()), factures()]
     return {"version": VERSION, "ok": all(c["ok"] for c in controles), "controles": controles}
 
 
