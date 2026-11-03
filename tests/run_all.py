@@ -2,7 +2,8 @@
 
 Depuis la racine : bin/moneta-tests [fichiers...]. MONETA_HOME, le Drive et la fenêtre du Mac sont fictifs pour chaque fichier;
 aucune donnée réelle n'est lue. MONETA_TESTS_SMITH : le dépôt de Smith dont les tests lancent le Dojo fictif (avant la mise en
-service, le worktree de la spec 013). La dernière ligne dit TOUT EST VERT ou ÉCHEC, avec le nombre de tests.
+service, le worktree de la spec 013). La dernière ligne dit TOUT EST VERT ou ÉCHEC, avec le nombre de tests. Une suite complète
+écrit son verdict dans .conformite.json (socle.conformite, spec 014 de Smith), que smith-verifier lit sans rien lancer.
 """
 from concurrent.futures import ThreadPoolExecutor
 import os
@@ -12,6 +13,8 @@ import subprocess
 import sys
 import tempfile
 import time
+
+from socle.conformite import ecrire_resultat
 
 ROOT = Path(__file__).resolve().parent.parent
 TESTS = ROOT / 'tests'
@@ -54,6 +57,9 @@ def main(noms):
         if not ok:
             echecs += 1
             print(sortie[-6000:])
+    if not noms:
+        # Seule une suite complète dit le verdict : un fichier lancé seul n'en dit rien.
+        ecrire_resultat(ROOT, not echecs)
     etat = 'TOUT EST VERT' if not echecs else 'ÉCHEC'
     print(f'{etat} — {total} tests OK, {len(fichiers)} fichiers, {echecs} échecs — {time.monotonic() - debut:.2f} s')
     return 1 if echecs else 0

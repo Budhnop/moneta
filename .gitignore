@@ -2,6 +2,8 @@
 .venv/
 __pycache__/
 *.pyc
+# Le verdict de la suite, lu par smith-verifier (socle.conformite, spec 014 de Smith)
+.conformite.json
 # Aucune donnée dans le dépôt : elles vivent dans ~/_PersonalAgents/donnees/moneta (R6)
 *.db
 *.db-wal
