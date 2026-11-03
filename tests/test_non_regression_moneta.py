@@ -9,6 +9,7 @@ d'espaces, écrits sans contrainte CHECK. Le vrai smith-lecture-paiements refuse
 test_le_vrai_programme_refuse_ce_monde le prouve, jamais un zéro. Les cas qui lisent les paiements reçoivent alors les réponses de la
 spec 011 figées sur f9c1599 (tests/paiements_figes.py); le vrai programme est éprouvé sur des bases valides par les autres tests.
 """
+from datetime import date
 import json
 from pathlib import Path
 import sys
@@ -34,6 +35,9 @@ ATTENDUS = {
 }
 # Rejoués chez Smith seulement (voir la docstring).
 CHEZ_SMITH = {('lectures', 'regles_affaires / 1')}
+# Jour de la capture : SQLite date seul cree_le (DEFAULT datetime('now')), que monde() ne fige pas; la référence
+# l'a donc gardé. Le jour réel du rejeu lui est ramené, et lui seul.
+JOUR_CAPTURE = '2026-11-02'
 
 
 def lire(famille):
@@ -87,7 +91,8 @@ class TestMoneta(unittest.TestCase):
                 if famille == 'catalogue':
                     attendu = {'finances': [t for t in attendu['finances'] if t['name'] != 'regles_affaires']}
                 # Compare aussi les types numériques (1 et 1.0 ne sont pas interchangeables).
-                self.assertEqual(json.dumps(sortie, ensure_ascii=False), json.dumps(attendu, ensure_ascii=False))
+                obtenu = json.dumps(sortie, ensure_ascii=False).replace(date.today().isoformat(), JOUR_CAPTURE)
+                self.assertEqual(obtenu, json.dumps(attendu, ensure_ascii=False))
 
 
 for _famille in ATTENDUS:
