@@ -1,0 +1,22 @@
+# La conformité de Moneta (suite du socle 1.2, spec 014 de Smith, R4 et R9) : profil, sorties directes du Mac et exceptions.
+# Chaque exception dit sa raison et sa décision; une exception qui ne sert plus fait échouer la suite.
+profil = "lot"
+
+[[sortie]]
+nom = "drive"
+raison = "Les factures d'Ugo, déposées et classées dans son Google Drive (DojoD/05 Administration/Factures), et son dossier synchronisé."
+decision = "D109 (spec 013 de Smith : Moneta garde les factures de Finances dans Drive)"
+
+[[exception]]
+regle = "C1"
+fichier = "moneta/lecture_dojo.py"
+objet = "PROGRAMME"
+raison = "La lecture déclarée smith:paiements_dojo passe par le programme fermé de Smith, jamais par sa base (contrat lecture-paiements-moneta)."
+decision = "D107, D109 (spec 013 de Smith, lecture des paiements du Dojo)"
+
+[[exception]]
+regle = "C1"
+fichier = "moneta/scripts/demenager.py"
+objet = "*"
+raison = "Le déménagement déplace par nature les fichiers Finances de donnees/smith vers donnees/moneta et lit le commit de Smith (contrat demenagement)."
+decision = "D109 (spec 013 de Smith, T062)"
