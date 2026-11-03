@@ -40,12 +40,24 @@ DESTINATIONS = {'lecture': ('DESTINATION', 'DISQUE'), 'lot': ('DESTINATION', 'DI
 SORTIES = ('drive',)  # une sortie directe du Mac, chacune listée avec sa décision
 RESEAU = ('socket', 'ssl', 'http', 'urllib', 'smtplib', 'ftplib', 'poplib', 'imaplib', 'telnetlib', 'xmlrpc', 'socketserver',
           'webbrowser', 'asyncio')
-PROGRAMMES_SORTIE = ('curl', 'wget', 'scp', 'sftp', 'ssh', 'rsync', 'nc', 'ftp', 'telnet', 'mail', 'sendmail', 'open')
-DRIVE = re.compile(r'CloudStorage|GoogleDrive')
+RESEAU_SOUS = ('multiprocessing.connection', 'multiprocessing.managers')  # des sockets sous un module permis
+PROGRAMMES_SORTIE = ('curl', 'wget', 'scp', 'sftp', 'ssh', 'rsync', 'rclone', 'nc', 'ftp', 'telnet', 'mail', 'sendmail', 'open',
+                     'osascript')
+# Un interpréteur en tête de commande cache le programme qu'il lance : jamais sans décision.
+INTERPRETES = ('sh', 'bash', 'zsh', 'dash', 'ksh', 'csh', 'tcsh', 'fish', 'env', 'xargs', 'perl', 'ruby', 'node')
+GIT_SORTIE = ('push', 'fetch', 'pull', 'clone', 'ls-remote', 'send-email', 'request-pull')
+# Les dossiers synchronisés dans un nuage : une sortie du Mac, comme Google Drive.
+DRIVE = re.compile(r'CloudStorage|GoogleDrive|Google Drive|Mobile Documents|CloudDocs|iCloud|Dropbox|OneDrive|Box Sync', re.I)
+BIN_SORTIE = re.compile(r'(?<![\w.-])(?:/[\w/.-]*/)?(' + '|'.join(PROGRAMMES_SORTIE + INTERPRETES[:-3]) + r')(?=\s|$|;|\|)', re.M)
+# Seuls pip et ses aides peuvent être dans .venv (venv --without-pip n'y met rien).
+VENV_PERMIS = re.compile(r'^(?:pip|pip-\d[\w.]*\.dist-info|_distutils_hack|distutils-precedence\.pth|README(?:\.txt)?)$')
+DEPENDANCES = ('requirements.txt', 'requirements-dev.txt', 'requirements-test.txt', 'Pipfile', 'poetry.lock', 'uv.lock',
+               'setup.py', 'setup.cfg')
 # Le nom de la tâche de nuit et du trousseau : « <préfixe>.<agent>.sauvegarde », le préfixe étant celui du modèle de tâche.
 TROUSSEAU = re.compile(r'^[a-z][a-z0-9-]*(?:\.[a-z0-9-]+)+\.sauvegarde$')
 APPELS = ('run', 'Popen', 'check_output', 'check_call', 'call')
 PYTHON_NU = re.compile(r'(?<![/\w.$-])python3?(\.\d+)?(?![\w/.-])')
+CHEMINS = ('join', 'joinpath', 'Path', 'PurePath', 'PosixPath')
 TOUT = '*'  # une exception qui couvre tout un fichier pour sa règle
 RESULTAT = '.conformite.json'
 GIT = '/usr/bin/git'
@@ -151,22 +163,56 @@ def _importes(noeud):
 
 
 def _chaines(noeud):
-    """Les morceaux constants d'un chemin écrit avec / (Path.home() / '_PersonalAgents' / 'smith'), dans l'ordre."""
-    if isinstance(noeud, ast.BinOp) and isinstance(noeud.op, ast.Div):
+    """Les morceaux constants d'un chemin, dans l'ordre : écrit avec / ou + (Path.home() / '_PersonalAgents' / 'smith'), ou par
+    os.path.join, joinpath, Path(...)."""
+    if isinstance(noeud, ast.BinOp) and isinstance(noeud.op, (ast.Div, ast.Add)):
         return _chaines(noeud.left) + _chaines(noeud.right)
+    if isinstance(noeud, ast.Call) and getattr(noeud.func, 'attr', getattr(noeud.func, 'id', '')) in CHEMINS:
+        base = _chaines(noeud.func.value) if isinstance(noeud.func, ast.Attribute) and noeud.func.attr == 'joinpath' else []
+        return base + [m for a in noeud.args for m in _chaines(a)]
     if isinstance(noeud, ast.Constant) and isinstance(noeud.value, str):
         return [noeud.value]
     return []
 
 
+def _commande(noeud):
+    """Les éléments constants d'un appel subprocess.run([...]) écrit en liste littérale (None pour un élément calculé), sinon []."""
+    if isinstance(noeud, ast.Call) and getattr(noeud.func, 'attr', getattr(noeud.func, 'id', '')) in APPELS and noeud.args \
+            and isinstance(noeud.args[0], ast.List):
+        return [e.value if isinstance(e, ast.Constant) and isinstance(e.value, str) else None for e in noeud.args[0].elts]
+    return []
+
+
 def _tete_de_commande(noeud):
     """Le programme d'un appel subprocess.run([...]) écrit en liste littérale, sinon None."""
-    if isinstance(noeud, ast.Call) and getattr(noeud.func, 'attr', getattr(noeud.func, 'id', '')) in APPELS and noeud.args \
-            and isinstance(noeud.args[0], ast.List) and noeud.args[0].elts:
-        tete = noeud.args[0].elts[0]
-        if isinstance(tete, ast.Constant) and isinstance(tete.value, str):
-            return tete.value
+    commande = _commande(noeud)
+    return commande[0] if commande else None
+
+
+def _sortie_de_commande(commande):
+    """Pourquoi cette commande peut sortir du Mac, sinon None : un programme de sortie à n'importe quelle place (sh -c « curl … »,
+    env curl), un interpréteur en tête, ou git qui parle à un dépôt distant."""
+    if not commande or commande[0] is None:
+        return None
+    if Path(commande[0]).name in INTERPRETES:
+        return f'interpréteur « {commande[0]} » en tête : le programme lancé ne se voit pas'
+    for element in commande:
+        for mot in (element or '').split():
+            if Path(mot).name in PROGRAMMES_SORTIE:
+                return f'programme qui sort du Mac « {mot} »'
+    if Path(commande[0]).name == 'git' and any(e in GIT_SORTIE for e in commande[1:]):
+        return 'git vers un dépôt distant'
     return None
+
+
+def _textes_bin(racine):
+    """(relatif, ligne) des programmes de bin/, commentaires exclus."""
+    for programme in sorted((racine / 'bin').glob('*')):
+        if programme.is_file() and not programme.is_symlink():
+            relatif = _relatif(racine, programme)
+            for ligne in programme.read_text(encoding='utf-8', errors='replace').splitlines()[1:]:
+                if ligne.strip() and not ligne.lstrip().startswith('#'):
+                    yield relatif, ligne
 
 
 class Agent:
@@ -199,7 +245,11 @@ class Agent:
                 yield _relatif(self.racine, chemin), objet, noeud
 
     def declaration(self):
-        importlib.import_module(self.module)
+        paquet = importlib.import_module(self.module)
+        fichier = Path(getattr(paquet, '__file__', None) or '/').resolve()
+        if not fichier.is_relative_to(self.paquet):
+            raise ValueError(f'paquet « {self.module} » chargé depuis {fichier.parent}, hors de la racine jugée ({self.racine}) : '
+                             'PYTHONPATH vise une autre copie.')
         return declaration.actuelle()
 
     def autres(self):
@@ -223,13 +273,19 @@ def c1_base(agent):
     autres = agent.autres()
     segment = re.compile(r'(?:_PersonalAgents|donnees)/(' + '|'.join(autres) + r')(?:/|$)')
     for fichier, objet, noeud in agent.noeuds(agent.module):
-        morceaux = _chaines(noeud) if isinstance(noeud, ast.BinOp) and isinstance(noeud.op, ast.Div) else []
+        morceaux = _chaines(noeud) if isinstance(noeud, (ast.BinOp, ast.Call)) else []
+        if isinstance(noeud, ast.Call) and not {'_PersonalAgents', 'donnees'} & set(morceaux):
+            morceaux = []  # un appel ne vise un autre agent que par le chemin des agents
         vise = next((m for m in morceaux if m in autres), None) if morceaux else None
         if vise is None and isinstance(noeud, ast.Constant) and isinstance(noeud.value, str):
             trouve = segment.search(noeud.value)
             vise = trouve.group(1) if trouve else None
         if vise is not None:
             out.append(Constat('C1', fichier, objet, f'chemin vers le dépôt ou les données de « {vise} » : une base, un propriétaire.'))
+    for relatif, ligne in _textes_bin(agent.racine):
+        trouve = segment.search(ligne)
+        if trouve:
+            out.append(Constat('C1', relatif, 'programme', f'chemin vers le dépôt ou les données de « {trouve.group(1)} ».'))
     return _uniques(out)
 
 
@@ -251,6 +307,10 @@ def c2_profil(agent):
                 out.append(Constat('C2', 'declaration', nom, f'outil de lot sans son lot dans regles.lots ({info.lot}).'))
         elif info.type != 'lecture' and not nom.startswith('WR_SAVE_') and nom not in d.regles.hors_wr:
             out.append(Constat('C2', 'declaration', nom, 'écriture sans le préfixe WR_SAVE_ ni hors_wr déclaré.'))
+    declares = set(d.noms_outils())
+    for fichier, objet, nom in _outils_servis(agent):
+        if nom not in declares:
+            out.append(Constat('C2', fichier, objet, f'outil servi « {nom} » absent du registre : ni type, ni lot, ni profil.'))
     if profil == 'lecture' and (d.regles.lots or d.regles.hors_wr):
         out.append(Constat('C2', 'declaration', 'regles', 'profil lecture : ni lot ni écriture hors WR_SAVE_.'))
     if profil == 'lot':
@@ -263,6 +323,27 @@ def c2_profil(agent):
     return out
 
 
+def _outils_servis(agent):
+    """(fichier, objet, nom) des outils que le code sert : les 'name' des listes tools et les clés des dicts handlers."""
+    for fichier, objet, noeud in agent.noeuds(agent.module):
+        if not isinstance(noeud, (ast.Assign, ast.AnnAssign)):
+            continue
+        cibles = noeud.targets if isinstance(noeud, ast.Assign) else [noeud.target]
+        noms = {getattr(c, 'id', getattr(c, 'attr', '')).lower() for c in cibles}
+        if noeud.value is None:
+            continue
+        if 'tools' in noms or 'outils_servis' in noms:
+            for d in ast.walk(noeud.value):
+                if isinstance(d, ast.Dict):
+                    for k, v in zip(d.keys, d.values):
+                        if isinstance(k, ast.Constant) and k.value == 'name' and isinstance(v, ast.Constant) and isinstance(v.value, str):
+                            yield fichier, objet, v.value
+        if 'handlers' in noms and isinstance(noeud.value, ast.Dict):
+            for k in noeud.value.keys:
+                if isinstance(k, ast.Constant) and isinstance(k.value, str):
+                    yield fichier, objet, k.value
+
+
 def c3_sorties(agent):
     out, drive = [], []
     d = agent.declaration()
@@ -270,16 +351,24 @@ def c3_sorties(agent):
         out.append(Constat('C3', 'declaration', 'dossiers_sortie', 'au moins un dossier de sortie déclaré.'))
     for fichier, objet, noeud in agent.noeuds(agent.module):
         for nom in _importes(noeud):
-            if nom.split('.')[0] in RESEAU:
+            if nom.split('.')[0] in RESEAU or nom.startswith(RESEAU_SOUS):
                 out.append(Constat('C3', fichier, objet, f'import réseau « {nom} » : rien ne sort du Mac sans décision.'))
-        tete = _tete_de_commande(noeud)
-        programme = tete if tete is not None else noeud.value if isinstance(noeud, ast.Constant) and isinstance(
-            noeud.value, str) and noeud.value.startswith('/') else None
-        if programme is not None and Path(programme).name in PROGRAMMES_SORTIE:
-            out.append(Constat('C3', fichier, objet, f'programme qui sort du Mac « {programme} ».'))
+        pourquoi = _sortie_de_commande(_commande(noeud))
+        if pourquoi is None and isinstance(noeud, ast.Constant) and isinstance(noeud.value, str) and noeud.value.startswith('/') \
+                and Path(noeud.value).name in PROGRAMMES_SORTIE:
+            pourquoi = f'programme qui sort du Mac « {noeud.value} »'
+        if pourquoi is not None:
+            out.append(Constat('C3', fichier, objet, pourquoi + '.'))
         if isinstance(noeud, ast.Constant) and isinstance(noeud.value, str):
             if DRIVE.search(noeud.value):
-                drive.append(Constat('C3', fichier, objet, 'Google Drive est une sortie du Mac : la lister dans conformite.toml.'))
+                drive.append(Constat('C3', fichier, objet, 'Google Drive (ou un autre nuage) est une sortie du Mac : la lister dans '
+                                                         'conformite.toml.'))
+    for relatif, ligne in _textes_bin(agent.racine):
+        trouve = BIN_SORTIE.search(ligne)
+        if trouve:
+            out.append(Constat('C3', relatif, 'programme', f'programme qui sort du Mac ou interpréteur « {trouve.group(1)} ».'))
+        if DRIVE.search(ligne):
+            drive.append(Constat('C3', relatif, 'programme', 'dossier synchronisé dans un nuage : le lister dans conformite.toml.'))
     if 'drive' not in agent.config['sorties']:
         out += drive
     elif not drive:
@@ -303,9 +392,27 @@ def c4_autrui(agent):
             out.append(Constat('C4', fichier, objet, 'le signal du texte d’autrui s’écrit par le cadre MCP du socle, jamais directement.'))
         if isinstance(noeud, ast.Constant) and isinstance(noeud.value, str) and 'texte-autrui' in noeud.value:
             out.append(Constat('C4', fichier, objet, 'fichier du signal nommé directement.'))
+        if isinstance(noeud, (ast.Assign, ast.keyword)) and _sans_autrui_calcule(noeud):
+            out.append(Constat('C4', fichier, objet, 'sans_autrui calculé : D090 veut une liste fermée, chaque outil jugé à la main '
+                                                     '(un tuple de noms écrits).'))
     if not serveurs:
         out.append(Constat('C4', agent.module, 'serveur', 'aucun serveur sur socle.mcp.ServeurBase : le signal ne serait pas tenu.'))
     return _uniques(out)
+
+
+def _sans_autrui_calcule(noeud):
+    if isinstance(noeud, ast.Assign):
+        nomme = any(getattr(c, 'id', getattr(c, 'attr', '')).lower() == 'sans_autrui' for c in noeud.targets)
+    else:
+        nomme = noeud.arg == 'sans_autrui'
+    if not nomme:
+        return False
+    valeur = noeud.value
+    if isinstance(valeur, ast.Call):
+        return bool(valeur.args or valeur.keywords)  # tuple(OUTILS), oui; set() vide, rempli ensuite depuis une liste écrite, non
+    if isinstance(valeur, (ast.Tuple, ast.List, ast.Set)):
+        return not all(isinstance(e, ast.Constant) and isinstance(e.value, str) for e in valeur.elts)
+    return isinstance(valeur, (ast.ListComp, ast.SetComp, ast.GeneratorExp, ast.DictComp, ast.BinOp, ast.Starred))
 
 
 def c5_nuit(agent):
@@ -408,21 +515,25 @@ def c8_dependances(agent):
                 tete = nom.split('.')[0]
                 if tete not in sys.stdlib_module_names and tete not in (agent.module, 'socle') and tete not in permis:
                     out.append(Constat('C8', fichier, objet, f'import « {nom} » hors bibliothèque standard (D108).'))
-    for nom in ('requirements.txt', 'requirements-dev.txt', 'Pipfile', 'poetry.lock', 'uv.lock'):
+    for nom in DEPENDANCES:
         if (agent.racine / nom).exists():
             out.append(Constat('C8', nom, 'fichier', 'dépendance déclarée sans décision (D108).'))
     projet = agent.racine / 'pyproject.toml'
     if projet.is_file():
         try:
-            dependances = tomllib.loads(projet.read_text(encoding='utf-8')).get('project', {}).get('dependencies', [])
-        except (OSError, tomllib.TOMLDecodeError):
+            projet_toml = tomllib.loads(projet.read_text(encoding='utf-8'))
+            dependances = [*projet_toml.get('project', {}).get('dependencies', []),
+                           *projet_toml.get('project', {}).get('optional-dependencies', {}),
+                           *projet_toml.get('dependency-groups', {})]
+        except (OSError, tomllib.TOMLDecodeError, TypeError):
             dependances = ['illisible']
         if dependances:
             out.append(Constat('C8', 'pyproject.toml', 'dependencies', 'dépendance déclarée sans décision (D108).'))
-    for paquets in (agent.racine / '.venv' / 'lib').glob('python*/site-packages'):
+    for paquets in agent.racine.glob('.venv*/lib/python*/site-packages'):
         for entree in sorted(paquets.iterdir()):
-            if not entree.name.startswith(('pip', '_distutils_hack', 'distutils-precedence', 'README')):
-                out.append(Constat('C8', '.venv', entree.name, 'paquet installé dans .venv sans décision (D108).'))
+            if not VENV_PERMIS.match(entree.name):
+                out.append(Constat('C8', _relatif(agent.racine, paquets).split('/')[0], entree.name,
+                                   'paquet ou .pth installé dans .venv sans décision (D108).'))
     return _uniques(out)
 
 
@@ -445,8 +556,10 @@ def c9_tests(agent):
     if not run_all.is_file():
         out.append(Constat('C9', 'tests/run_all.py', 'fichier', 'run_all.py lance chaque fichier dans un monde fictif.'))
     else:
-        retirees, ecrit = set(), False
+        retirees, ecrit, utilisee = set(), False, False
         for objet, noeud in _objets(agent.arbre(run_all)):
+            if isinstance(noeud, ast.Name) and noeud.id == 'RETIREES' and isinstance(noeud.ctx, ast.Load):
+                utilisee = True
             if objet == 'RETIREES' and isinstance(noeud, ast.Constant) and isinstance(noeud.value, str):
                 retirees.add(noeud.value)
             if (isinstance(noeud, ast.Call) and getattr(noeud.func, 'id', getattr(noeud.func, 'attr', '')) == 'ecrire_resultat'):
@@ -458,6 +571,12 @@ def c9_tests(agent):
             out.append(Constat('C9', 'tests/run_all.py', 'RETIREES', f'{variable} mène aux vraies données : jamais héritée.'))
         if not ecrit:
             out.append(Constat('C9', 'tests/run_all.py', 'ecrire_resultat', f'le verdict de la suite va dans {RESULTAT} (smith-verifier).'))
+        if not utilisee:
+            out.append(Constat('C9', 'tests/run_all.py', 'RETIREES', 'déclarée mais jamais lue : les variables ne sont pas retirées.'))
+    suite = tests / 'test_conformite.py'
+    if not suite.is_file() or not any(isinstance(n, ast.Call) and getattr(n.func, 'id', getattr(n.func, 'attr', '')) == 'cas'
+                                      for n in ast.walk(agent.arbre(suite))):
+        out.append(Constat('C9', 'tests/test_conformite.py', 'cas', 'la suite de conformité du socle (conformite.cas) y est lancée.'))
     for fichier, objet, noeud in agent.noeuds(agent.module, 'tests'):
         if not isinstance(noeud, ast.Call):
             continue
@@ -564,10 +683,14 @@ def _git(racine, *commande):
     return fait.stdout if fait.returncode == 0 else None
 
 
-def ecrire_resultat(racine, vert, maintenant=None):
+def ecrire_resultat(racine, vert, lances=None, maintenant=None):
     """.conformite.json à la racine (hors Git), en 600 et d'un coup : version du socle épinglée, commit, arbre propre, verdict,
-    date et exceptions. Aucune donnée métier; lu par smith-verifier, qui ne lance jamais la suite (R5)."""
+    date et exceptions. Aucune donnée métier; lu par smith-verifier, qui ne lance jamais la suite (R5).
+
+    lances : {fichier de tests : nombre de tests passés}. Vert seulement si la suite de conformité a passé en entier
+    (test_conformite.py, une méthode par règle et celle des exceptions) : sans elle, une suite verte ne prouve rien."""
     racine = Path(racine)
+    vert = vert and bool(lances) and lances.get('test_conformite.py') == len(JUGES) + 1
     try:
         version = empreinte.lire_epingle(racine / 'socle.epingle.json')['version']
     except ValueError:

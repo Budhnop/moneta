@@ -59,7 +59,7 @@ def main(noms):
             print(sortie[-6000:])
     if not noms:
         # Seule une suite complète dit le verdict : un fichier lancé seul n'en dit rien.
-        ecrire_resultat(ROOT, not echecs)
+        ecrire_resultat(ROOT, not echecs, {nom: nombre for nom, ok, nombre, *_ in resultats if ok})
     etat = 'TOUT EST VERT' if not echecs else 'ÉCHEC'
     print(f'{etat} — {total} tests OK, {len(fichiers)} fichiers, {echecs} échecs — {time.monotonic() - debut:.2f} s')
     return 1 if echecs else 0
