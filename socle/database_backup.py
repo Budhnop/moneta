@@ -5,12 +5,14 @@ import shutil
 import sqlite3
 import tempfile
 
+from socle.chemins import private_folder
+
 
 def backup_database(source, directory):
     source, directory = Path(source), Path(directory)
     if not source.is_file():
         raise ValueError("Base source introuvable.")
-    directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+    private_folder(directory)
     directory.chmod(0o700)
     files = [Path(str(source) + suffix) for suffix in ("", "-wal")]
 

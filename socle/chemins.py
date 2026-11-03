@@ -5,9 +5,21 @@ import secrets
 
 
 def private_folder(folder):
-    """The folder, created if needed and set to 700 so only the owner's account can open it; missing parents are left as they are."""
+    """Creates missing levels in 700 and sets the final folder to 700; existing parents keep their modes."""
     folder = Path(folder)
-    folder.mkdir(parents=True, exist_ok=True, mode=0o700)
+    missing = [folder]
+    for parent in folder.parents:
+        if parent.exists():
+            break
+        missing.append(parent)
+    for path in reversed(missing):
+        try:
+            path.mkdir(mode=0o700)
+        except FileExistsError:
+            if not path.is_dir():
+                raise
+        else:
+            path.chmod(0o700)
     folder.chmod(0o700)
     return folder
 

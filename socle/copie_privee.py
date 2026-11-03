@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import shutil
 
+from socle.chemins import private_folder
 from socle.database_backup import backup_database
 from socle.depot_sqlite import source_signature
 
@@ -46,7 +47,7 @@ class CopiePrivee:
 
     def purge_stale(self):
         # Copies left behind by servers that stopped abruptly; live servers keep theirs.
-        self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
+        private_folder(self.root)
         for path in self.root.iterdir():
             if path.is_dir() and path.name.isdigit() and not alive(int(path.name)):
                 shutil.rmtree(path, ignore_errors=True)

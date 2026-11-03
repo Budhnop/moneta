@@ -161,10 +161,12 @@ def du_jour(jour, strict=False):
 
 
 def go_du_jour(jour):
-    """Money written on the go that day (enregistre, or inconnu: the write may have happened). A line without a readable
-    amount, or a journal that cannot be read (F9), raises: the policy then has a doubt."""
+    """Money written on the go that day (enregistre, or inconnu: the write may have happened). An unknown mode,
+    an unreadable amount, or a journal that cannot be read (F9), raises: the policy then has a doubt."""
     total = Decimal('0')
     for ecriture in du_jour(jour, strict=True):
+        if ecriture['mode'] not in MODES:
+            raise ValueError('mode inconnu au journal')
         if ecriture['mode'] != 'go' or ecriture['resultat'] not in ('enregistre', 'inconnu'):
             continue
         try:

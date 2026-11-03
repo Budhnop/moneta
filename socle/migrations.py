@@ -13,6 +13,7 @@ from pathlib import Path
 import re
 import sqlite3
 
+from socle.chemins import private_folder
 from socle.database_backup import backup_database
 
 NAME = re.compile(r"^(\d{4})_([a-z0-9_]+)\.py$")
@@ -109,7 +110,7 @@ def migrate(db, backups, folder):
     backup = backup_database(db, backups) if db.is_file() else None
     if backup is None:
         # A new base holds private data from its first row: owner-only, like the others.
-        db.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        private_folder(db.parent)
         db.touch(mode=0o600)
     con = sqlite3.connect(db, isolation_level=None)
     done = []
