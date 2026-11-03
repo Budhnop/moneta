@@ -27,6 +27,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import signal
 import sqlite3
 import subprocess
 import sys
@@ -66,7 +67,8 @@ DOSSIERS = (
     ("smith/private", "moneta/private", r"sauvegarde-pieces\.txt", False, False),
     ("smith/journal-ecritures", "journal-ecritures", r".+", True, True),  # le journal commun (R2, D110)
 )
-REMPLACES = "remplaces"  # sous l'archive : les fichiers d'arrivée remplacés par leur fusion
+REMPLACES = "remplaces"
+PLAN_BASCULE = "plan-bascule.json"  # dans le passage, avant la bascule (R7)  # sous l'archive : les fichiers d'arrivée remplacés par leur fusion
 COMMIT = re.compile(r"[0-9a-f]{40}")
 
 # Les lignes de `ps` qui empêchent le déménagement (libellé, motif).
@@ -81,6 +83,10 @@ PROCESSUS = (
 
 class Refus(Exception):
     """Rien n'a changé (sauf, pour une base modifiée pendant la copie, la sauvegarde faite avant)."""
+
+
+class Interrompu(BaseException):
+    """SIGTERM ou SIGHUP pendant le déménagement : levé comme une erreur, pour que la remise se fasse (R7)."""
 
 
 class Bloque(Exception):
@@ -283,6 +289,9 @@ def _refus_avant(donnees, sens, sondes, fichiers):
             raise Refus(f"{f['vers']} déjà présent : refusé.")
         if f["cible"] is not None and (cible.is_symlink() or not cible.is_file() or cible.lstat().st_uid != sondes.uid):
             raise Refus(f"{f['vers']} à fusionner n'est pas un fichier ordinaire d'Ugo : refusé.")
+    if (donnees / sens.passage / PLAN_BASCULE).exists():
+        raise Refus(f"Bascule interrompue : son plan est dans {sens.passage}/{PLAN_BASCULE} (chaque fichier avec sa place d'avant "
+                    "et d'après, dans l'ordre). Remets chaque fichier à sa place d'avant à la main, puis efface le passage.")
     if (donnees / sens.passage).exists():
         raise Refus(f"{sens.passage} reste d'un essai interrompu : à regarder avant de recommencer.")
     attente = pending(donnees / sens.base_de, MIGRATIONS)
@@ -404,7 +413,26 @@ def _poser(donnees, de, vers):
         raise
 
 
+def _interrompre(numero, _):
+    raise Interrompu(f"signal {numero}")
+
+
 def _deplacer(sens, donnees, sondes, go, crochet, commit_retour=None):
+    """Sous SIGTERM et SIGHUP levés en Interrompu (R7), le tout ou rien de _deplacer_sans_signal; SIGINT lève déjà."""
+    anciens = {}
+    try:
+        for numero in (signal.SIGTERM, signal.SIGHUP):
+            anciens[numero] = signal.signal(numero, _interrompre)
+    except ValueError:  # hors du fil principal : rien à poser
+        pass
+    try:
+        return _deplacer_sans_signal(sens, donnees, sondes, go, crochet, commit_retour)
+    finally:
+        for numero, ancien in anciens.items():
+            signal.signal(numero, ancien)
+
+
+def _deplacer_sans_signal(sens, donnees, sondes, go, crochet, commit_retour):
     donnees = Path(donnees)
     crochet = crochet or _rien
     fichiers = _plan(donnees, sens)
@@ -448,12 +476,22 @@ def _deplacer(sens, donnees, sondes, go, crochet, commit_retour=None):
             raise Refus(f"{sens.base_de} a changé pendant la copie : rien n'est déplacé. Ferme ce qui écrit et recommence.")
         if ecarts:
             raise Refus("Empreinte différente après la copie : " + ", ".join(ecarts) + ". Rien n'est déplacé.")
+        # R7 : le plan de la bascule, écrit avant elle; après un arrêt brutal, il dit où remettre chaque fichier.
+        archive = donnees / sens.archive / stamp
+        deplacements = []
+        for f in fichiers:
+            if f["cible"] is not None:
+                deplacements.append((donnees / f["vers"], archive / REMPLACES / f["vers"], f))
+            deplacements += [(passage / f["vers"], donnees / f["vers"], None), (donnees / f["de"], archive / f["de"], None)]
+        plan_bascule = {"sens": sens.nom, "horodatage": stamp, "deplacements": [
+            {"avant": de.relative_to(donnees).as_posix(), "apres": vers.relative_to(donnees).as_posix()}
+            for de, vers, _ in deplacements]}
+        write_private(passage, PLAN_BASCULE, (json.dumps(plan_bascule, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
     except BaseException:
         shutil.rmtree(passage, ignore_errors=True)
         raise
 
     # 4 et 5. Bascule par renommage, sans jamais écraser, puis la note; un échec remet ce qui a été renommé.
-    archive = donnees / sens.archive / stamp
     faits = []
 
     def renommer(de, vers):
@@ -465,14 +503,10 @@ def _deplacer(sens, donnees, sondes, go, crochet, commit_retour=None):
     try:
         if source_signature(base) != signature:
             raise Refus(f"{sens.base_de} a changé avant la bascule : rien n'est déplacé.")
-        for f in fichiers:
-            if f["cible"] is not None:
-                remplace = archive / REMPLACES / f["vers"]
-                renommer(donnees / f["vers"], remplace)
-                if sha(remplace) != f["cible"]:
-                    raise Refus(f"{f['vers']} a changé avant la bascule : rien n'est déplacé.")
-            renommer(passage / f["vers"], donnees / f["vers"])
-            renommer(donnees / f["de"], archive / f["de"])
+        for de, vers, remplace in deplacements:
+            renommer(de, vers)
+            if remplace is not None and sha(vers) != remplace["cible"]:
+                raise Refus(f"{remplace['vers']} a changé avant la bascule : rien n'est déplacé.")
         for dossier in {vers.parent for _, vers in faits}:
             dossier.chmod(0o700)
         crochet("note")

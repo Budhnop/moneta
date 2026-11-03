@@ -77,7 +77,7 @@ INVENTAIRE = {
     # bin/moneta-demenager, lancé par Ugo dans le terminal (T062) : il déplace des fichiers entre donnees/smith/, donnees/moneta/
     # et le journal commun, jamais ailleurs; --repeter travaille sur un dossier fictif et des copies temporaires.
     ('moneta/scripts/demenager.py', '_creer'): 'déménagement',
-    ('moneta/scripts/demenager.py', '_deplacer'): 'déménagement',
+    ('moneta/scripts/demenager.py', '_deplacer_sans_signal'): 'déménagement',  # _deplacer pose les signaux (R7)
     ('moneta/scripts/demenager.py', '_poser'): 'déménagement',  # renommage sans écraser (revue T074, R1)
     ('moneta/scripts/demenager.py', '_journal_commence'): 'fictif',
     ('moneta/scripts/demenager.py', '_repeter_fusion'): 'fictif',

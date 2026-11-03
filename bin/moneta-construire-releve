@@ -5,7 +5,14 @@
 set -eu
 ROOT="${0:A:h:h}"
 CODE="$ROOT/moneta/releve"
-MONETA_HOME="${MONETA_HOME:-$HOME/_PersonalAgents/donnees/moneta}"
+# Le dossier des données vient de moneta.chemins.home(), même règle que tout Moneta : un MONETA_HOME sous ~/_PersonalAgents
+# n'est jamais suivi; ici il est refusé, plutôt que de construire en silence dans les vraies données (revue T074 de Smith, R11).
+DONNEES="$(cd "$ROOT" && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$ROOT" "$ROOT/.venv/bin/python" -c 'from moneta.chemins import home; print(home())')"
+if [[ -n "${MONETA_HOME:-}" && "$DONNEES" != "${MONETA_HOME:A}" && "$DONNEES" != "$MONETA_HOME" ]]; then
+  echo "Refusé : MONETA_HOME ($MONETA_HOME) n'est pas suivi (sous ~/_PersonalAgents, seul le vrai dossier de Moneta sert); rien n'est construit." >&2
+  exit 1
+fi
+MONETA_HOME="$DONNEES"
 APPS="$MONETA_HOME/apps"
 BIN="$APPS/moneta-releve"
 NEW="$APPS/.moneta-releve.neuf"
@@ -14,7 +21,9 @@ if [[ -L "$MONETA_HOME" || -L "$APPS" || -L "$BIN" ]]; then
   echo "Refusé : $APPS ou $BIN est un lien." >&2
   exit 1
 fi
-/bin/mkdir -p -m 700 "$APPS"
+# Chaque niveau manquant en 700, jamais 755 (R9).
+/bin/mkdir -m 700 "$MONETA_HOME" 2>/dev/null || true
+/bin/mkdir -m 700 "$APPS" 2>/dev/null || true
 /bin/chmod 700 "$APPS"
 /bin/rm -f "$NEW"
 /usr/bin/swiftc -O -o "$NEW" "$CODE/main.swift"

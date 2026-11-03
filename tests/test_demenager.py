@@ -641,6 +641,58 @@ class TestRevueT074(Base):
         self.assertFalse((self.donnees / 'moneta' / '.passage').is_dir() and not (self.donnees / 'moneta' / '.passage').is_symlink())
 
 
+class TestR7(Base):
+    """R7 (P2) : le plan de la bascule est écrit avant elle; SIGTERM et SIGHUP remettent tout; après un arrêt brutal, le
+    refus nomme le plan."""
+
+    def enfant(self, signal_nom, rang=3):
+        # Un vrai processus, qui s'envoie le signal au rang-ième renommage de la bascule.
+        code = (f"import os, signal, sys; sys.path.insert(0, {str(ROOT)!r}); from moneta.scripts import demenager as d\n"
+                "vus = []\n"
+                "def crochet(etape):\n"
+                "    if etape == 'bascule':\n"
+                "        vus.append(1)\n"
+                f"        if len(vus) == {rang}: os.kill(os.getpid(), signal.{signal_nom})\n"
+                f"d.appliquer({str(self.donnees)!r}, d.FICTIVES, lambda r: 'déménager', crochet=crochet)\n")
+        env = {k: v for k, v in os.environ.items() if k != 'PYTHONPATH'}
+        return subprocess.run([sys.executable, '-c', code], capture_output=True, text=True, timeout=120, env=env, cwd=ROOT)
+
+    def test_plan_ecrit_avant_la_bascule(self):
+        vus = []
+
+        def crochet(etape):
+            if etape == 'bascule' and not vus:
+                chemin = self.donnees / 'moneta' / '.passage' / 'plan-bascule.json'
+                vus.append((json.loads(chemin.read_text()), stat.S_IMODE(chemin.stat().st_mode)))
+        self.aller(crochet=crochet)
+        plan, mode = vus[0]
+        self.assertEqual(mode, 0o600)
+        paires = {(d['avant'], d['apres']) for d in plan['deplacements']}
+        for de, vers in BOUGE.items():
+            self.assertIn((f'moneta/.passage/{vers}', vers), paires)
+            self.assertIn((de, f"smith/private/avant-moneta/{plan['horodatage']}/{de}"), paires)
+        self.assertFalse((self.donnees / 'moneta' / '.passage').exists())
+
+    def test_sigterm_et_sighup_remettent_tout(self):
+        for nom in ('SIGTERM', 'SIGHUP'):
+            with self.subTest(nom):
+                self.donnees = self.copie()
+                fait = self.enfant(nom)
+                self.assertNotEqual(fait.returncode, 0)
+                self.assertIn('Interrompu', fait.stderr)
+                self.assertAvant()
+
+    def test_arret_brutal_refus_qui_nomme_le_plan(self):
+        fait = self.enfant('SIGKILL')
+        self.assertEqual(fait.returncode, -9)
+        plan = json.loads((self.donnees / 'moneta' / '.passage' / 'plan-bascule.json').read_text())
+        self.assertEqual(len(plan['deplacements']), 2 * len(BOUGE))
+        avant = self.arbre()
+        with self.assertRaisesRegex(self.d.Refus, 'plan-bascule.json'):
+            self.aller()
+        self.assertEqual(self.arbre(), avant)
+
+
 class TestProcessus(unittest.TestCase):
     def test_lignes_de_ps(self):
         from moneta.scripts.demenager import processus_en_cours

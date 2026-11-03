@@ -38,8 +38,8 @@ avec un document de ce dépôt, cette constitution prévaut; les décisions vive
 - Toute vraie écriture, même un essai, exige l'approbation d'Ugo. Une autorisation de code
   n'autorise aucune écriture réelle.
 - Dans l'app Smith, le « go » est un bouton de l'écran ouvert par Ugo, accepté par le serveur de
-  Moneta seulement avec le jeton de la séance; la fenêtre du Mac s'ouvre selon les mêmes règles
-  que dans le chat (D098). Le modèle de l'app ne reçoit jamais un `WR_SAVE_*` ni un outil d'un
+  l'app seulement avec le jeton de la séance, puis passé à Moneta par son tube privé, comme pour
+  Smith; la fenêtre du Mac s'ouvre selon les mêmes règles que dans le chat (D098). Le modèle de l'app ne reçoit jamais un `WR_SAVE_*` ni un outil d'un
   autre agent (D083).
 
 ### III. Aucune perte silencieuse

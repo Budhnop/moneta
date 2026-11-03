@@ -14,7 +14,7 @@ import stat
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from moneta.chemins import PAQUET, finances_db, home, releve  # noqa: E402
+from moneta.chemins import PAQUET, environnement_reel, finances_db, home, releve  # noqa: E402
 from moneta.outils.factures import INBOX, inbox_present  # noqa: E402
 from socle.migrations import changed, pending  # noqa: E402
 
@@ -91,6 +91,7 @@ def main(argv):
     if argv not in ([], ["--json"]):
         print("Usage : moneta-verifier [--json]", file=sys.stderr)
         return 2
+    environnement_reel()
     valeur = verifier()
     if argv == ["--json"]:
         sys.stdout.write(json.dumps(valeur, ensure_ascii=False) + "\n")

@@ -9,7 +9,7 @@ import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from moneta.agent.droits import REGISTRE, verifier  # noqa: E402
-from moneta.chemins import PAQUET, backups, finances_db, home  # noqa: E402
+from moneta.chemins import PAQUET, backups, environnement_reel, finances_db, home  # noqa: E402
 from moneta.outils.lot import SourceStore  # noqa: E402
 from moneta.outils.mcp_finances import VARIABLE, FinancesReads, finances_lot  # noqa: E402
 from moneta.outils.serveur import McpServer  # noqa: E402
@@ -75,6 +75,7 @@ def main(argv=None):
                 mode_app(server, registre)
             server.serve()
         return
+    environnement_reel()
     ledger = finances_db()
     if not ledger.is_file() or pending(ledger, MIGRATIONS):
         log("Moneta MCP : base absente ou migrations en attente; lancer bin/moneta-migrer --appliquer.")

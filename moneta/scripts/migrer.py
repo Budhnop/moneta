@@ -5,7 +5,7 @@ import sqlite3
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from moneta.chemins import PAQUET, backups, finances_db  # noqa: E402
+from moneta.chemins import PAQUET, backups, environnement_reel, finances_db  # noqa: E402
 from socle.migrations import changed, migrate, pending  # noqa: E402
 
 MIGRATIONS = PAQUET / "migrations" / "finances"
@@ -16,6 +16,7 @@ def main(argv=None):
     parser.add_argument("--appliquer", action="store_true", help="Appliquer les migrations en attente (sinon : statut seulement).")
     parser.add_argument("--base", choices=["finances"], help="La seule base de Moneta (comme bin/smith-migrer --base finances).")
     args = parser.parse_args(argv)
+    environnement_reel()
     db = finances_db()
     try:
         todo = pending(db, MIGRATIONS)

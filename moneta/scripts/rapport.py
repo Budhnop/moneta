@@ -4,6 +4,7 @@ from datetime import date
 import json
 import sys
 
+from moneta.chemins import environnement_reel
 from moneta.outils.executeur import execute_safe
 from moneta.outils.rapport import write_report
 
@@ -12,6 +13,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Rapport financier annuel imprimable.")
     parser.add_argument("annee", nargs="?", type=int, default=date.today().year)
     args = parser.parse_args(argv)
+    environnement_reel()
     reply = execute_safe("finances_rapport", [str(args.annee)], timeout=30)
     if not reply["ok"]:
         print(f"ERREUR : rapport impossible — {reply['error']}")

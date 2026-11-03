@@ -26,7 +26,7 @@ import sys
 import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from moneta.chemins import backups, drive, home  # noqa: E402
+from moneta.chemins import backups, drive, environnement_reel, home  # noqa: E402
 from moneta.outils import factures  # noqa: E402
 from moneta.outils.csv_export import export_csv  # noqa: E402
 from socle import offsite_backup as moteur  # noqa: E402
@@ -330,6 +330,7 @@ def to_disk(destination, disk, today=None):
 
 
 def main():
+    environnement_reel()
     status = 0
     try:
         made = local_copies()
