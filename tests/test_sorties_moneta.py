@@ -78,8 +78,12 @@ INVENTAIRE = {
     # et le journal commun, jamais ailleurs; --repeter travaille sur un dossier fictif et des copies temporaires.
     ('moneta/scripts/demenager.py', '_creer'): 'déménagement',
     ('moneta/scripts/demenager.py', '_deplacer'): 'déménagement',
-    ('moneta/scripts/demenager.py', 'renommer'): 'déménagement',
-    ('moneta/scripts/demenager.py', '_remettre'): 'déménagement',
+    ('moneta/scripts/demenager.py', '_poser'): 'déménagement',  # renommage sans écraser (revue T074, R1)
+    ('moneta/scripts/demenager.py', '_journal_commence'): 'fictif',
+    ('moneta/scripts/demenager.py', '_repeter_fusion'): 'fictif',
+    ('moneta/scripts/demenager.py', 'go'): 'fictif',  # la cible qui apparaît pendant le mot, dans la répétition
+    ('moneta/scripts/demenager.py', 'journal_illisible'): 'fictif',
+    ('moneta/scripts/demenager.py', 'lien_d_arrivee'): 'fictif',
     ('moneta/scripts/demenager.py', '_repeter_refus'): 'fictif',
     ('moneta/scripts/demenager.py', 'essai'): 'fictif',
     ('moneta/scripts/demenager.py', 'sans_derniere_migration'): 'fictif',

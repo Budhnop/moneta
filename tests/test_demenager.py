@@ -38,6 +38,9 @@ ROOT = Path(__file__).resolve().parents[1]
 REEL = Path.home() / '_PersonalAgents' / 'donnees'
 MOT_ALLER, MOT_RETOUR = 'déménager', 'retour'
 ETAPES = {'sauvegarde', 'copie', 'empreintes', 'bascule', 'note', 'remise'}
+# Une ligne du journal commun écrite par Smith 1.1.0 avant le déménagement (R2).
+LIGNE = {'id': 'c0ffee11', 'heure': '2026-11-02T09:00:00', 'type': 'intention', 'agent': 'smith', 'outil': 'WR_SAVE_DOJO_BD',
+         'lot': 'dojo', 'mode': 'go', 'raisons': [], 'etapes': [], 'montant': '0.00', 'origine': 'desktop'}
 
 # Ce qui part de donnees/smith/ (data-model, Inventaire du déménagement), vers donnees/.
 BOUGE = {
@@ -411,6 +414,231 @@ class TestEchecs(Base):
                 for chemin in pris.exception.chemins:
                     self.assertIn(str(chemin), str(pris.exception))
                     self.assertTrue((self.donnees / chemin).exists(), chemin)
+
+
+class TestRevueT074(Base):
+    """Les constats P1 de la revue T074 (docs/29_REVUE_013.md de Smith), chacun avec son essai."""
+
+    def plan(self, donnees=None, sens=None):
+        return self.d._plan(donnees or self.donnees, sens or self.d.ALLER)
+
+    # R1 : refus refaits après le mot; aucun renommage n'écrase.
+    def test_r1_cible_apparue_pendant_le_mot(self):
+        avant = self.arbre()
+        intrus = self.donnees / 'moneta' / 'imports' / 'releve-2026-10.pdf'
+
+        def go(recapitulatif):
+            ecrire(intrus, b'apparu pendant le mot')
+            return MOT_ALLER
+        with self.assertRaisesRegex(self.d.Refus, 'releve-2026-10.pdf déjà présent'):
+            self.d.appliquer(self.donnees, self.sondes(), go)
+        self.assertEqual(intrus.read_bytes(), b'apparu pendant le mot')
+        apres = self.arbre()
+        del apres['moneta/imports/releve-2026-10.pdf']
+        self.assertEqual(apres, avant)
+
+    def test_r1_ligne_ajoutee_au_journal_commun_pendant_le_mot(self):
+        ecrire(self.donnees / 'journal-ecritures' / '2026-11.jsonl', (json.dumps(LIGNE) + '\n').encode())
+        avant = self.arbre()
+
+        def go(recapitulatif):
+            with (self.donnees / 'journal-ecritures' / '2026-11.jsonl').open('a', encoding='utf-8') as journal:
+                journal.write(json.dumps({**LIGNE, 'id': 'beefbeef'}) + '\n')
+            return MOT_ALLER
+        with self.assertRaisesRegex(self.d.Refus, 'changé pendant'):
+            self.d.appliquer(self.donnees, self.sondes(), go)
+        apres = self.arbre()
+        self.assertIn('beefbeef', (self.donnees / 'journal-ecritures' / '2026-11.jsonl').read_text())
+        del apres['journal-ecritures/2026-11.jsonl'], avant['journal-ecritures/2026-11.jsonl']
+        self.assertEqual(apres, avant)
+
+    def test_r1_processus_lance_pendant_le_mot(self):
+        appels = []
+
+        def processus():
+            appels.append(1)
+            return [] if len(appels) == 1 else ['serveur Smith']
+        self.refuse_sans_changement('serveur Smith', lambda: self.aller(sondes=self.sondes(processus=processus)))
+        self.assertEqual(len(appels), 2)
+
+    def test_r1_cible_apparue_pendant_la_bascule(self):
+        intrus = self.donnees / 'moneta' / 'imports' / 'releve-2026-10.pdf'
+
+        def crochet(etape):
+            if etape == 'bascule' and not intrus.exists():
+                ecrire(intrus, b'apparu pendant la bascule')
+        with self.assertRaisesRegex(self.d.Refus, 'apparu'):
+            self.aller(crochet=crochet)
+        self.assertEqual(intrus.read_bytes(), b'apparu pendant la bascule')
+        for de, vers in BOUGE.items():
+            self.assertEqual(sha(self.donnees / de), self.empreintes[de], de)
+            if vers != 'moneta/imports/releve-2026-10.pdf':
+                self.assertFalse((self.donnees / vers).exists(), vers)
+        self.assertFalse((self.donnees / 'moneta' / '.passage').exists())
+        self.assertRestes(self.donnees)
+
+    def test_r1_aucun_rename(self):
+        # Le renommage par os.rename écrase sans un mot sur macOS : il n'est plus employé.
+        source = (ROOT / 'moneta' / 'scripts' / 'demenager.py').read_text(encoding='utf-8')
+        self.assertNotIn('os.rename(', source)
+        self.assertNotIn('os.replace(', source)
+
+    # R2 : le journal commun déjà commencé est fusionné, à l'aller et au retour.
+    def commencer(self, lignes):
+        ecrire(self.donnees / 'journal-ecritures' / '2026-11.jsonl', ''.join(json.dumps(l) + '\n' for l in lignes).encode())
+
+    def test_r2_journal_commun_commence(self):
+        ancienne = json.loads((self.donnees / 'smith' / 'journal-ecritures' / '2026-11.jsonl').read_text())
+        self.commencer([ancienne, LIGNE, {**LIGNE, 'type': 'resultat', 'resultat': 'enregistre', 'detail': None}])
+        commun = sha(self.donnees / 'journal-ecritures' / '2026-11.jsonl')
+        recaps = []
+        note = self.d.appliquer(self.donnees, self.sondes(), lambda r: recaps.append(r) or MOT_ALLER)
+        self.assertIn('fusionné', recaps[0])
+        self.assertEqual(note['fusionnes'], ['journal-ecritures/2026-11.jsonl'])
+        lignes = [json.loads(l) for l in (self.donnees / 'journal-ecritures' / '2026-11.jsonl').read_text().splitlines()]
+        # Chaque ligne une fois (l'ancienne était en double), l'intention et son résultat gardés tous les deux.
+        self.assertEqual(lignes, [ancienne, LIGNE, {**LIGNE, 'type': 'resultat', 'resultat': 'enregistre', 'detail': None}])
+        self.assertEqual(note['empreintes']['journal-ecritures/2026-11.jsonl'],
+                         sha(self.donnees / 'journal-ecritures' / '2026-11.jsonl'))
+        remplaces = list((self.donnees / 'smith' / 'private' / 'avant-moneta').glob('*/remplaces/journal-ecritures/2026-11.jsonl'))
+        self.assertEqual([sha(r) for r in remplaces], [commun])
+        self.assertEqual(stat.S_IMODE(remplaces[0].stat().st_mode), 0o600)
+        self.assertFalse((self.donnees / 'smith' / 'journal-ecritures' / '2026-11.jsonl').exists())
+        # Au retour, un mois que l'ancien Smith a recommencé est fusionné de même.
+        ecrire(self.donnees / 'smith' / 'journal-ecritures' / '2026-11.jsonl',
+               (json.dumps({**LIGNE, 'id': 'abcdef12'}) + '\n').encode())
+        self.retour()
+        revenues = [json.loads(l) for l in (self.donnees / 'smith' / 'journal-ecritures' / '2026-11.jsonl').read_text().splitlines()]
+        self.assertEqual(len(revenues), 4)
+        self.assertIn({**LIGNE, 'id': 'abcdef12'}, revenues)
+
+    def test_r2_refus_sans_rien_changer(self):
+        cas = {
+            'illisible': 'pas du json\n',
+            'coupée': json.dumps(LIGNE),
+            'différentes': json.dumps({**LIGNE, 'montant': '9.99'}) + '\n' + json.dumps(LIGNE) + '\n',
+        }
+        for motif, texte in cas.items():
+            with self.subTest(motif):
+                self.donnees = self.copie()
+                ecrire(self.donnees / 'journal-ecritures' / '2026-11.jsonl', texte.encode())
+                if motif == 'différentes':
+                    ecrire(self.donnees / 'journal-ecritures' / '2026-11.jsonl', (json.dumps(LIGNE) + '\n').encode())
+                    ecrire(self.donnees / 'smith' / 'journal-ecritures' / '2026-11.jsonl',
+                           (json.dumps({**LIGNE, 'montant': '9.99'}) + '\n').encode())
+                self.refuse_sans_changement(motif if motif != 'différentes' else 'deux lignes différentes')
+
+    def test_r2_echec_injecte_avec_journal_commence(self):
+        def preparer():
+            self.donnees = self.copie()
+            self.commencer([LIGNE])
+        preparer()
+        vues = self.etapes(lambda crochet: self.aller(crochet=crochet))
+        for rang in range(len(vues)):
+            with self.subTest(rang=rang):
+                preparer()
+                plan = self.plan()
+                appels = []
+
+                def crochet(etape):
+                    appels.append(etape)
+                    if len(appels) == rang + 1:
+                        raise TestEchecs.Injecte(etape)
+                with self.assertRaises(Exception):
+                    self.aller(crochet=crochet)
+                self.assertIn(self.d._etat(self.donnees, plan), ('avant', 'fait'))
+
+    def etapes(self, faire):
+        vues = []
+        faire(vues.append)
+        return vues
+
+    # R3 : le commit de retour donné par Ugo, vérifié et noté à part.
+    def depot(self, tete, objets=(), paquet=()):
+        depot = self.monde / 'depot-fictif'
+        shutil.rmtree(depot, ignore_errors=True)
+        git = depot / '.git'
+        (git / 'refs' / 'heads').mkdir(parents=True)
+        (git / 'HEAD').write_text('ref: refs/heads/main\n')
+        (git / 'refs' / 'heads' / 'main').write_text(tete + '\n')
+        for objet in objets:
+            ecrire(git / 'objects' / objet[:2] / objet[2:], b'x')
+        noms = sorted(bytes.fromhex(o) for o in paquet)
+        eventail = b''.join(sum(1 for n in noms if n[0] <= i).to_bytes(4, 'big') for i in range(256))
+        ecrire(git / 'objects' / 'pack' / 'pack-fictif.idx', b'\xfftOc\x00\x00\x00\x02' + eventail + b''.join(noms))
+        return depot
+
+    def test_r3_commit_retour_verifie(self):
+        a, b, c, e = ('a' * 40, 'b' * 40, 'c' * 40, '0e' + 'f' * 38)
+        depot = self.depot(a, objets=[b], paquet=['01' * 20, e, 'ff' * 20])
+        refus = self.d.commit_retour_refus
+        self.assertRegex(refus(depot, 'abc1234'), '40 caractères')
+        self.assertRegex(refus(depot, b.upper()), '40 caractères')
+        self.assertRegex(refus(depot, a), 'actuel')
+        self.assertRegex(refus(depot, c), 'inconnu')
+        self.assertIsNone(refus(depot, b))
+        self.assertIsNone(refus(depot, e))
+        self.assertIsNone(refus(depot, 'ff' * 20))
+
+    def test_r3_commit_retour_note_a_part(self):
+        recaps = []
+        note = self.d.appliquer(self.donnees, self.sondes(), lambda r: recaps.append(r) or MOT_ALLER, commit_retour='b' * 40)
+        self.assertIn('b' * 40, recaps[0])
+        self.assertEqual(note['commit_retour_smith'], 'b' * 40)
+        ecrite = json.loads((self.donnees / 'moneta' / 'private' / 'demenagement.json').read_text())
+        self.assertEqual(ecrite['commit_retour_smith'], 'b' * 40)
+        self.assertIn('commit_smith', ecrite)
+        self.assertEqual(self.d._commit_retour_note(self.donnees), 'b' * 40)
+
+    def test_r3_appliquer_le_demande(self):
+        for arguments, code in ((('--appliquer',), 2), (('--commit-retour', 'b' * 40), 2), (('--retour', '--commit-retour', 'b' * 40), 2),
+                                (('--appliquer', '--commit-retour', 'abc'), 1)):
+            with self.subTest(arguments):
+                fait = lancer(*arguments)
+                self.assertEqual(fait.returncode, code, fait.stdout + fait.stderr)
+                self.assertIn('commit-retour', fait.stderr)
+                self.assertNotIn('Traceback', fait.stderr)
+
+    # R4 : aucun niveau d'un chemin touché n'est un lien, à l'aller et au retour.
+    def test_r4_lien_sur_chaque_niveau(self):
+        niveaux = ('moneta', 'moneta/database', 'moneta/backups', 'moneta/imports', 'journal-ecritures', 'moneta/private',
+                   'smith/private/avant-moneta', 'smith/backups/database/avant-moneta', 'moneta/.passage')
+        for niveau in niveaux:
+            with self.subTest(niveau):
+                self.donnees = self.copie()
+                ailleurs = self.monde / 'ailleurs'
+                shutil.rmtree(ailleurs, ignore_errors=True)
+                ailleurs.mkdir()
+                (self.donnees / niveau).parent.mkdir(parents=True, exist_ok=True)
+                (self.donnees / niveau).symlink_to(ailleurs, target_is_directory=True)
+                self.refuse_sans_changement('[Ll]ien')
+                self.assertEqual(list(ailleurs.iterdir()), [], niveau)
+
+    def test_r4_dossier_de_depart_lie(self):
+        ailleurs = self.monde / 'smith-ailleurs'
+        shutil.move(self.donnees / 'smith', ailleurs)
+        (self.donnees / 'smith').symlink_to(ailleurs, target_is_directory=True)
+        self.refuse_sans_changement('[Ll]ien')
+
+    def test_r4_au_retour(self):
+        for niveau in ('smith/journal-ecritures', 'smith/imports', 'moneta/private/avant-retour'):
+            with self.subTest(niveau):
+                self.donnees = self.copie()
+                self.aller()
+                ailleurs = self.monde / 'ailleurs'
+                shutil.rmtree(ailleurs, ignore_errors=True)
+                ailleurs.mkdir()
+                shutil.rmtree(self.donnees / niveau, ignore_errors=True)
+                (self.donnees / niveau).symlink_to(ailleurs, target_is_directory=True)
+                self.refuse_sans_changement('[Ll]ien', self.retour)
+                self.assertEqual(list(ailleurs.iterdir()), [], niveau)
+
+    def refuse_sans_changement(self, motif, faire=None):
+        avant = self.arbre()
+        with self.assertRaisesRegex(self.d.Refus, motif):
+            (faire or self.aller)()
+        self.assertEqual(self.arbre(), avant)
+        self.assertFalse((self.donnees / 'moneta' / '.passage').is_dir() and not (self.donnees / 'moneta' / '.passage').is_symlink())
 
 
 class TestProcessus(unittest.TestCase):
