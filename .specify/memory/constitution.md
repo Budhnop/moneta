@@ -139,7 +139,7 @@ avec un document de ce dépôt, cette constitution prévaut; les décisions vive
 ## Notes de version
 
 - **1.0.0** (2026-11-02) : première version, tirée de la constitution de Smith 2.3.1 pour les
-  données de Moneta (spec 013, T068, EF-002). En vigueur à la mise en service de la spec 013,
-  après l'accord d'Ugo.
+  données de Moneta (spec 013, T068, EF-002), alignée sur Smith 2.4.0 et D110. Accord d'Ugo le
+  2026-11-02 (T069). En vigueur à la mise en service de la spec 013.
 
-**Version** : 1.0.0 | **Ratifiée** : en attente de l'accord d'Ugo | **Dernière modification** : 2026-11-02
+**Version** : 1.0.0 | **Ratifiée** : 2026-11-02 | **Dernière modification** : 2026-11-02
