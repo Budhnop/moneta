@@ -132,7 +132,8 @@ def _verifier_etat(d):
     personne; un agent inscrit ne lit que des agents de son écosystème. En fictif, la forme suffit."""
     mode = installation.etat(d)
     if mode == 'seul' and d.lectures:
-        raise installation.EtatRefuse(f'{d.nom} vit seul : aucune lecture chez un autre agent ({", ".join(d.lectures)}).')
+        raise installation.EtatRefuse(f'{d.nom} vit seul : aucune lecture chez un autre agent ({", ".join(d.lectures)}). '
+                                      f'Retirer la lecture, ou installer {d.nom} dans un écosystème (bin/{d.nom}-installer --ecosysteme).')
     if mode == 'inscrit':
         agents = installation.ecosysteme(d.installation.racine).agents
         hors = [l for l in d.lectures if l.split(':')[0] not in agents]

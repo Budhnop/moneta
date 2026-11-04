@@ -1,6 +1,6 @@
 {
  "version": "2.0.0",
- "commit": "658f76492bd890c1afbdb7c52333fe5412b32144",
+ "commit": "e71f4fd3753b48c09029660f88ee74698bd6a16b",
  "fichiers": {
   "__init__.py": "75d9498a83db509c32dbb0aa16c1b3fb1619853801d80346ae8ce34237805651",
   "chemins.py": "1c6523f4eb84242497c380de07b8727f7e2ed6cec982a216624768eadd9a2303",
@@ -9,7 +9,7 @@
   "conformite.py": "9f867b520a78961cf010a10ab958d65e520877656e899e414ba5d82d1af2adb6",
   "copie_privee.py": "8fd57b70ada200c0adc482b7e0b09c83e0bfdc18ed009f3642139999e5db2507",
   "database_backup.py": "523e656c6e8b69893fe9cfaf1dbb45a039af719ccb9e6f16b80571714a54a772",
-  "declaration.py": "795f3f379bbe94980380a814b8be9136c03e5ea27148303f971d6303517f5fd2",
+  "declaration.py": "501e840b14c6bb8216ecf236f2ee088ecc24041d655011598833f46d9dc67a3c",
   "depot_sqlite.py": "3d5ca099651ecb6e77fc98acf7815126079f84eec47442b6624499f7ced7a6ea",
   "empreinte.py": "b896b683bd74ad66ca617bb91ac111fbb847e86d24dce4b531d8fa01fbbffb2d",
   "executeur.py": "67bb6df9c9b61288997ca38ca4e35faad4ffe56381fd642dc71349df5fb69ed1",
