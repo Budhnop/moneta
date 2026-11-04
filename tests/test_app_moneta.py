@@ -7,6 +7,7 @@ import select
 import stat
 import struct
 import subprocess
+import tempfile
 import unittest
 from unittest.mock import patch
 import zlib
@@ -271,20 +272,23 @@ class TestTableauDeBordSansPaiements(unittest.TestCase):
 
 
 class TestFictifJamaisReel(unittest.TestCase):
-    """Un dossier temporaire sous ~/_PersonalAgents (TMPDIR illisible, repli de Python sur le dossier courant) : MONETA_HOME
+    """Un dossier temporaire marqué réel (TMPDIR illisible, repli de Python sur un dossier réel) : MONETA_HOME
     n'y est pas suivi, le serveur fictif s'arrête avant d'écrire quoi que ce soit, au lieu de prendre le vrai dossier."""
 
-    def test_dossier_sous_personnel_refuse(self):
+    def test_dossier_marque_reel_refuse(self):
         from moneta import chemins
         from moneta.scripts.moneta_mcp import serveur_fictif
-        dossier = chemins.PERSONNEL / 'moneta-mcp-fictif-jamais-cree'
-        with patch.dict(os.environ), patch('moneta.scripts.moneta_mcp.migrate') as migre, \
-                patch('moneta.scripts.moneta_mcp.McpServer') as serveur, self.assertRaises(SystemExit) as arret:
-            serveur_fictif(str(dossier), registre=REGISTRE)
-        self.assertEqual(arret.exception.code, 2)
-        migre.assert_not_called()
-        serveur.assert_not_called()
-        self.assertFalse(dossier.exists())
+        from socle import installation
+        with tempfile.TemporaryDirectory() as temp:
+            (Path(temp) / installation.MARQUE).write_bytes(b'')
+            dossier = Path(temp) / 'moneta-mcp-fictif-jamais-cree'
+            with patch.dict(os.environ), patch('moneta.scripts.moneta_mcp.migrate') as migre, \
+                    patch('moneta.scripts.moneta_mcp.McpServer') as serveur, self.assertRaises(SystemExit) as arret:
+                serveur_fictif(str(dossier), registre=REGISTRE)
+            self.assertEqual(arret.exception.code, 2)
+            migre.assert_not_called()
+            serveur.assert_not_called()
+            self.assertFalse(dossier.exists())
 
 
 if __name__ == '__main__':

@@ -63,7 +63,7 @@ def monde():
         env = {'MONETA_HOME': str(dossier / 'home'), 'MONETA_DRIVE_DOSSIER': str(dossier / 'drive'),
                'MONETA_FINANCES_DB': str(dossier / 'finances.db')}
         with patch.dict(os.environ, env):
-            os.environ.pop('UGOD_SIGNAL_TEXTE', None)
+            os.environ.pop('SOCLE_SIGNAL_TEXTE', None)
             (dossier / 'home').mkdir()
             avant = confirmation.AUTOMATIC
             confirmation.AUTOMATIC = True

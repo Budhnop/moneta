@@ -28,7 +28,7 @@ ROW_CHARS = 55
 MAX_ROWS = 38
 BREAKS = ('\r\n', '\r', ' ', ' ', '\x85')
 
-AUTOMATIC = os.environ.get('UGOD_CONFIRMATION') == 'automatique'
+AUTOMATIC = os.environ.get('SOCLE_CONFIRMATION') == 'automatique'
 # Full path: a program named osascript placed earlier on the PATH could otherwise answer « Enregistrer ».
 OSASCRIPT = '/usr/bin/osascript'
 
@@ -137,6 +137,9 @@ def fictitious():
     try:
         agent = actuelle()
         if any(_inside(path, folder) for path in (agent.dossier_donnees(), *agent.bases()) for folder in agent.dossiers_reels):
+            return False
+        from socle.installation import est_reel  # a folder marked real by an installer is never fictitious (spec 017)
+        if any(est_reel(path) for path in (agent.dossier_donnees(), *agent.bases())):
             return False
         return not any(_inside(path, CLOUD) for path in agent.dossiers_sortie())
     except Exception:

@@ -20,14 +20,14 @@ def backup_database(source, directory):
         return [(p.stat().st_ino, p.stat().st_size, p.stat().st_mtime_ns) if p.exists() else None for p in files]
 
     before = signature()
-    with tempfile.TemporaryDirectory(prefix="smith-backup-read-") as folder:
+    with tempfile.TemporaryDirectory(prefix="socle-lecture-copie-") as folder:
         snapshot = Path(folder) / "source.db"
         for path, suffix in zip(files, ("", "-wal")):
             if path.exists():
                 shutil.copyfile(path, Path(str(snapshot) + suffix))
         if signature() != before:
             raise RuntimeError("Base modifiée pendant la copie; réessayer avec la source au repos.")
-        with tempfile.NamedTemporaryFile(prefix="dojo-smith-", suffix=".db", dir=directory, delete=False) as file:
+        with tempfile.NamedTemporaryFile(prefix="socle-copie-", suffix=".db", dir=directory, delete=False) as file:
             target = Path(file.name)
         try:
             # Closed before returning: a copy still open when the caller moves it leaves its -wal and -shm behind.

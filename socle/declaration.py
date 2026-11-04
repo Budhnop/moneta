@@ -4,14 +4,17 @@ N'importe aucun autre module du socle, et aucun module du socle n'importe un age
 lève DeclarationAbsente, une OSError : les chemins qui attrapent déjà OSError refusent alors d'eux-mêmes, et le socle prend
 le parti le plus strict. La déclaration empêche l'oubli, pas la fraude; la retouche relève de l'épingle et de la revue.
 """
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 import re
 from types import MappingProxyType
 from typing import Callable
 
-# Fait partie du format du signal : les copies des autres agents gardent la même liste.
-PAR = ('smith', 'thot', 'atlas', 'aurele', 'moneta')
+from socle import installation
+
+# Socle 2.0 (spec 017 de Smith, D112) : aucune liste d'agents ici. Le nom a une forme; qui écrit le signal et qui se lit
+# viennent du fichier d'écosystème (socle.installation).
+NOM = installation.NOM
 # Une donnée partagée lue chez un autre agent (spec 013) : « agent:donnee », par exemple « smith:paiements_dojo ».
 LECTURE = re.compile(r'^[a-z]+:[a-z_]+$')
 RAISONS_BASE = ('texte_autrui_recent', 'signal_douteux', 'hors_liste', 'plafond_montant', 'plafond_jour', 'plafond_etapes', 'doute')
@@ -39,6 +42,8 @@ class Regles:
     etapes_max: int
     juges: dict  # lot -> fonction(etape, config?) fournie par l'agent
     hors_wr: tuple  # écritures sans le préfixe WR_SAVE_
+    versionnees: dict = field(default_factory=dict)
+    regle_autrui: str = 'aucune'
 
 
 @dataclass(frozen=True)
@@ -64,6 +69,7 @@ class Declaration:
     regles: Regles
     textes: Textes
     lectures: tuple = ()  # données d'autres agents qu'il lit, chacune « agent:donnee »
+    installation: object = None  # socle.installation.Installation, ou None : l'agent ne tourne alors que sur du fictif
 
 
 _retenue = None
@@ -93,6 +99,10 @@ def _valider_regles(r):
     _exiger(isinstance(r.juges, dict) and all(callable(j) for j in r.juges.values()), 'juges')
     _exiger(isinstance(r.hors_wr, tuple) and all(type(n) is str for n in r.hors_wr), 'hors_wr')
 
+    _exiger(isinstance(r.versionnees, dict) and all(type(k) is str and isinstance(v, (tuple, list)) and len(v) == 2
+             and all(type(c) is str and c for c in v) for k, v in r.versionnees.items()), 'versionnees')
+    _exiger(r.regle_autrui in ('aucune', 'refus_et_marque'), 'regle_autrui')
+
 
 def _valider_textes(t):
     _exiger(isinstance(t, Textes), 'textes')
@@ -103,15 +113,31 @@ def _valider_textes(t):
 
 def _valider(d):
     _exiger(isinstance(d, Declaration), "ce n'est pas une Declaration")
-    _exiger(type(d.nom) is str and d.nom in PAR, 'nom')
+    _exiger(type(d.nom) is str and NOM.match(d.nom), 'nom (a-z, 2 à 20 lettres)')
     for champ in ('dossier_donnees', 'bases', 'dossiers_sortie', 'outil', 'noms_outils'):
         _exiger(callable(getattr(d, champ)), champ)
-    _exiger(isinstance(d.dossiers_reels, tuple) and d.dossiers_reels, 'au moins un dossier réel')
+    _exiger(d.installation is None or isinstance(d.installation, installation.Installation), 'installation')
+    _exiger(isinstance(d.dossiers_reels, tuple), 'dossiers_reels')
+    _exiger(d.installation is None or installation.dossier_reel(d.installation, d.nom) in tuple(Path(c) for c in d.dossiers_reels),
+            'le dossier réel de l’installation dans dossiers_reels')
     _exiger(all(isinstance(c, (str, Path)) and Path(c).is_absolute() for c in d.dossiers_reels), 'chemins réels absolus')
     _valider_regles(d.regles)
     _valider_textes(d.textes)
-    _exiger(isinstance(d.lectures, tuple) and all(type(l) is str and LECTURE.match(l) and l.split(':')[0] in PAR
+    _exiger(isinstance(d.lectures, tuple) and all(type(l) is str and LECTURE.match(l) and NOM.match(l.split(':')[0])
                                                   and l.split(':')[0] != d.nom for l in d.lectures), 'lectures')
+
+
+def _verifier_etat(d):
+    """Sur les vraies données, l'état décide : EtatRefuse (une OSError) empêche l'agent de démarrer. Un agent seul ne lit
+    personne; un agent inscrit ne lit que des agents de son écosystème. En fictif, la forme suffit."""
+    mode = installation.etat(d)
+    if mode == 'seul' and d.lectures:
+        raise installation.EtatRefuse(f'{d.nom} vit seul : aucune lecture chez un autre agent ({", ".join(d.lectures)}).')
+    if mode == 'inscrit':
+        agents = installation.ecosysteme(d.installation.racine).agents
+        hors = [l for l in d.lectures if l.split(':')[0] not in agents]
+        if hors:
+            raise installation.EtatRefuse(f'{d.nom} lit un agent absent de son écosystème ({", ".join(hors)}).')
 
 
 def _figer(valeur):
@@ -128,7 +154,8 @@ def _figee(d):
     """A copy of what was validated: changing the agent's own tables afterwards can never loosen a decision."""
     r, t = d.regles, d.textes
     return replace(d, regles=replace(r, avec_montant=_figer(r.avec_montant), facultatif=_figer(r.facultatif),
-                                     raison_fenetre=_figer(r.raison_fenetre), raisons=_figer(r.raisons), juges=_figer(r.juges)),
+                                     raison_fenetre=_figer(r.raison_fenetre), raisons=_figer(r.raisons), juges=_figer(r.juges),
+                                     versionnees=_figer(r.versionnees)),
                    textes=replace(t, modes=_figer(t.modes)))
 
 
@@ -138,6 +165,7 @@ def declarer(declaration):
     if _retenue is not None and (declaration is _retenue or declaration is _source):
         return _retenue
     _valider(declaration)
+    _verifier_etat(declaration)
     if _retenue is not None:
         raise ValueError('Déclaration invalide : un autre agent est déjà déclaré dans ce processus.')
     _retenue, _source = _figee(declaration), declaration

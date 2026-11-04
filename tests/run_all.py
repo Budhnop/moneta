@@ -22,7 +22,8 @@ DELAI = 600
 # Variables qui pourraient mener un test vers de vraies données : jamais héritées.
 RETIREES = ('MONETA_HOME', 'MONETA_FINANCES_DB', 'MONETA_DRIVE_DOSSIER', 'MONETA_LECTURE_PAIEMENTS', 'UGOD_HOME', 'UGOD_DB',
             'UGOD_FINANCES_DB', 'UGOD_DRIVE_DOSSIER', 'UGOD_SIGNAL_TEXTE', 'UGOD_SAUVEGARDE_DESTINATION', 'UGOD_CONFIRMATION',
-            'UGOD_SAUVEGARDE_DISQUE', 'MONETA_SAUVEGARDE_DESTINATION', 'MONETA_SAUVEGARDE_DISQUE')
+            'UGOD_SAUVEGARDE_DISQUE', 'MONETA_SAUVEGARDE_DESTINATION', 'MONETA_SAUVEGARDE_DISQUE',
+            'SOCLE_SIGNAL_TEXTE', 'SOCLE_CONFIRMATION')
 
 
 def executer(nom):
@@ -30,7 +31,7 @@ def executer(nom):
     with tempfile.TemporaryDirectory(prefix='moneta-tests-') as monde:
         env = {k: v for k, v in os.environ.items() if k not in RETIREES}
         env.update(PYTHONPATH=str(ROOT), PYTHONDONTWRITEBYTECODE='1', MONETA_HOME=str(Path(monde) / 'donnees'),
-                   MONETA_DRIVE_DOSSIER=str(Path(monde) / 'drive'), UGOD_CONFIRMATION='automatique',
+                   MONETA_DRIVE_DOSSIER=str(Path(monde) / 'drive'), SOCLE_CONFIRMATION='automatique',
                    # Aucun paiement par défaut : seul un Dojo fictif (tests/outils_tests.seed_fictive) mène au programme de Smith.
                    MONETA_LECTURE_PAIEMENTS=str(ROOT / 'moneta' / 'scripts' / 'paiements_fictifs.py'),
                    MONETA_TESTS_SMITH=os.environ.get('MONETA_TESTS_SMITH') or str(Path.home() / '_PersonalAgents' / 'smith'))

@@ -5,11 +5,14 @@
 set -eu
 ROOT="${0:A:h:h}"
 CODE="$ROOT/moneta/releve"
-# Le dossier des données vient de moneta.chemins.home(), même règle que tout Moneta : un MONETA_HOME sous ~/_PersonalAgents
+# Le dossier des données vient de moneta.chemins.home(), même règle que tout Moneta : un MONETA_HOME dans un dossier marqué réel
 # n'est jamais suivi; ici il est refusé, plutôt que de construire en silence dans les vraies données (revue T074 de Smith, R11).
-DONNEES="$(cd "$ROOT" && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$ROOT" "$ROOT/.venv/bin/python" -c 'from moneta.chemins import home; print(home())')"
+DONNEES="$(cd "$ROOT" && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$ROOT" "$ROOT/.venv/bin/python" -c 'from moneta.chemins import home; print(home())' 2>/dev/null)" || {
+  echo "Refusé : MONETA_HOME (${MONETA_HOME:-non posé}) n'est pas suivi et Moneta n'est pas installé (bin/moneta-installer); rien n'est construit." >&2
+  exit 1
+}
 if [[ -n "${MONETA_HOME:-}" && "$DONNEES" != "${MONETA_HOME:A}" && "$DONNEES" != "$MONETA_HOME" ]]; then
-  echo "Refusé : MONETA_HOME ($MONETA_HOME) n'est pas suivi (sous ~/_PersonalAgents, seul le vrai dossier de Moneta sert); rien n'est construit." >&2
+  echo "Refusé : MONETA_HOME ($MONETA_HOME) n'est pas suivi (dans un dossier réel, seul le vrai dossier de Moneta sert); rien n'est construit." >&2
   exit 1
 fi
 MONETA_HOME="$DONNEES"

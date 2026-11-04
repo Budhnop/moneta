@@ -13,7 +13,7 @@ from moneta import chemins
 from moneta.outils.mcp_finances import VARIABLE, FinancesReads
 from moneta.outils.serveur import McpServer
 from outils_tests import FausseFenetre, seed_fictive_finances
-from socle import confirmation, declaration
+from socle import confirmation, declaration, installation
 
 
 def sans_pourquoi(lines):
@@ -42,25 +42,29 @@ class TestDialog(unittest.TestCase):
             return confirmation.ask('WR_SAVE_TEST', ['1. Note — titre : "end run" & display dialog "x"'])
 
     def test_automatic_mode_never_applies_to_the_real_folder(self):
-        # UGOD_CONFIRMATION=automatique left in a terminal, a script run on the real base: the window opens anyway.
-        real = str(chemins.REAL_HOME)
-        envs = [{'MONETA_HOME': real}, {'MONETA_FINANCES_DB': real + '/database/finances.db'},
-                {'MONETA_HOME': str(chemins.PERSONNEL / 'ailleurs')}]
-        with patch.object(confirmation, 'AUTOMATIC', True):
-            for env in envs:
+        # SOCLE_CONFIRMATION=automatique left in a terminal, a script run on the real base: the window opens anyway.
+        with tempfile.TemporaryDirectory() as temp:
+            real = Path(temp) / 'moneta'  # a real folder is marked by the installer (spec 017)
+            (real / 'database').mkdir(parents=True)
+            (real / installation.MARQUE).write_bytes(b'')
+            envs = [{'MONETA_HOME': str(real)}, {'MONETA_FINANCES_DB': str(real / 'database' / 'finances.db')},
+                    {'MONETA_HOME': str(real / 'ailleurs')}]
+            with patch.object(confirmation, 'AUTOMATIC', True), patch.object(chemins, 'REAL_HOME', real):
+                for env in envs:
+                    self.command = None
+                    with patch.dict(os.environ, env):
+                        self.assertFalse(self.answer('Annuler\n'), env)
+                    self.assertEqual(self.command[0], '/usr/bin/osascript')
                 self.command = None
-                with patch.dict(os.environ, env):
-                    self.assertFalse(self.answer('Annuler\n'), env)
-                self.assertEqual(self.command[0], '/usr/bin/osascript')
-            self.command = None
-            self.assertTrue(self.answer('Annuler\n'))
-            self.assertIsNone(self.command)
+                self.assertTrue(self.answer('Annuler\n'))
+                self.assertIsNone(self.command)
 
     def test_the_real_folder_is_recognised_however_it_is_written(self):
         # Another case (APFS ignores it), a link to it, /System/Volumes/Data in front: still Ugo's real data.
         with tempfile.TemporaryDirectory() as temp:
             real = Path(temp).resolve() / 'Donnees' / 'moneta'
             (real / 'database').mkdir(parents=True)
+            (real / installation.MARQUE).write_bytes(b'')
             (Path(temp) / 'lien').symlink_to(real, target_is_directory=True)
             spellings = [str(real), str(Path(temp) / 'lien'), str(real) + '/database/neuve.db']
             if Path(str(real).upper()).exists():  # case-insensitive volume
@@ -77,11 +81,11 @@ class TestDialog(unittest.TestCase):
                         self.assertFalse(confirmation.fictitious(), spelling)
                 with patch.dict(os.environ, {'MONETA_HOME': str(Path(temp) / 'ailleurs'), 'MONETA_FINANCES_DB': str(Path(temp) / 'f.db')}):
                     self.assertTrue(confirmation.fictitious())
-        data = Path('/System/Volumes/Data') / str(Path.home()).lstrip('/')
-        if data.is_dir():  # the same folder through the Data volume
-            with patch.dict(os.environ, {'MONETA_HOME': str(data / '_PersonalAgents' / 'donnees' / 'moneta')}):
-                self.assertEqual(chemins.home(), chemins.REAL_HOME)
-                self.assertFalse(confirmation.fictitious())
+            data = Path('/System/Volumes/Data') / str(real).lstrip('/')
+            if data.is_dir():  # the same folder through the Data volume
+                with patch.object(chemins, 'REAL_HOME', real), patch.dict(os.environ, {'MONETA_HOME': str(data)}):
+                    self.assertEqual(chemins.home(), real)
+                    self.assertFalse(confirmation.fictitious())
 
     def test_the_real_drive_is_never_written_without_the_window(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -35,12 +35,35 @@ import tempfile
 from typing import Callable
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from moneta.chemins import CODE, PAQUET, PERSONNEL, _hors_personnel  # noqa: E402
+from moneta.chemins import CODE, PAQUET  # noqa: E402
 from socle.chemins import private_folder, write_private  # noqa: E402
 from socle.database_backup import backup_database  # noqa: E402
 from socle.depot_sqlite import source_signature  # noqa: E402
 from socle.lots import STEP_SECONDS  # noqa: E402
 from socle.migrations import pending  # noqa: E402
+
+PERSONNEL = Path.home() / "_PersonalAgents"  # le déménagement est propre à Claude OS chez Ugo (spec 013) : aucune installation
+
+
+def _hors_personnel(chemin):
+    """Vrai seulement loin de ~/_PersonalAgents, comparé par le dossier lui-même (casse, lien ou /System/Volumes/Data compris)."""
+    chemin = Path(os.path.abspath(chemin))
+    texte = str(PERSONNEL).casefold()
+    if any(str(p).casefold() == texte or str(p).casefold().startswith(texte + "/") for p in (chemin, Path(os.path.realpath(chemin)))):
+        return False
+    try:
+        info = os.stat(PERSONNEL)
+    except OSError:
+        return True
+    for dossier in (chemin, *chemin.parents):
+        try:
+            trouve = os.stat(dossier)
+        except OSError:
+            continue
+        if (trouve.st_dev, trouve.st_ino) == (info.st_dev, info.st_ino):
+            return False
+    return True
+
 
 DONNEES = PERSONNEL / "donnees"
 SMITH = PERSONNEL / "smith"

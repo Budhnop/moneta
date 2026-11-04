@@ -8,10 +8,14 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 import unittest
+from unittest import mock
+
+from moneta import chemins
+from socle import installation
 
 ROOT = Path(__file__).resolve().parents[1]
-PERSONNEL = Path.home() / '_PersonalAgents'
 TETES = ('moneta_mcp.py', 'migrer.py', 'verifier.py', 'sauvegarde_quotidienne.py', 'rapport.py')
 
 
@@ -26,21 +30,47 @@ def python(code, **env):
 
 
 class TestR8(unittest.TestCase):
+    """En ce processus : un Moneta sans installation ni MONETA_HOME ne démarre pas, donc l'installation est simulée (REAL_HOME)."""
+
+    def monde(self, temp, **env):
+        reel = Path(temp) / 'moneta'
+        reel.mkdir()
+        (reel / installation.MARQUE).write_bytes(b'')
+        base = {k: v for k, v in os.environ.items() if not k.startswith('MONETA_')}
+        return reel, mock.patch.dict(os.environ, {**base, **env}, clear=True)
+
     def test_drive_suivi_seulement_avec_moneta_home_suivi(self):
-        code = 'from moneta import chemins; print(chemins.drive())'
-        reel = str(Path.home() / 'Library/CloudStorage/GoogleDrive-ugo@dojod.ca/My Drive')
-        self.assertEqual(python(code, MONETA_DRIVE_DOSSIER='/tmp/ailleurs'), reel)
-        self.assertEqual(python(code, MONETA_DRIVE_DOSSIER='/tmp/ailleurs', MONETA_HOME=str(PERSONNEL / 'essai')), reel)
-        self.assertEqual(python(code, MONETA_DRIVE_DOSSIER='/tmp/ailleurs', MONETA_HOME=os.environ['MONETA_HOME']), '/tmp/ailleurs')
+        reel_drive = Path.home() / 'Library/CloudStorage/GoogleDrive-ugo@dojod.ca/My Drive'
+        with tempfile.TemporaryDirectory() as temp:
+            reel, env = self.monde(temp, MONETA_DRIVE_DOSSIER='/tmp/ailleurs')
+            with env, mock.patch.object(chemins, 'REAL_HOME', reel):
+                self.assertEqual(chemins.drive(), reel_drive)  # aucun MONETA_HOME : les vraies données
+                os.environ['MONETA_HOME'] = str(reel / 'essai')  # dans un dossier marqué réel : jamais suivi
+                self.assertEqual(chemins.drive(), reel_drive)
+        with tempfile.TemporaryDirectory() as temp:
+            reel, env = self.monde(temp, MONETA_DRIVE_DOSSIER='/tmp/ailleurs')
+            with env, mock.patch.object(chemins, 'REAL_HOME', None):  # sans installation
+                os.environ['MONETA_HOME'] = str(reel / 'essai')
+                self.assertEqual(chemins.drive(), reel_drive)
+        with mock.patch.dict(os.environ, {'MONETA_DRIVE_DOSSIER': '/tmp/ailleurs'}):  # le monde fictif de la suite
+            self.assertEqual(chemins.drive(), Path('/tmp/ailleurs'))
+            with mock.patch.object(chemins, 'REAL_HOME', None):
+                self.assertEqual(chemins.drive(), Path('/tmp/ailleurs'))
 
     def test_environnement_reel_retire_les_variables_heritees(self):
-        code = ('import os; from moneta import chemins; chemins.environnement_reel(); '
-                'print(os.environ.get("MONETA_FINANCES_DB"), os.environ.get("MONETA_DRIVE_DOSSIER"), chemins.finances_db())')
-        self.assertEqual(python(code, MONETA_FINANCES_DB='/tmp/autre.db', MONETA_DRIVE_DOSSIER='/tmp/ailleurs'),
-                         f'None None {PERSONNEL / "donnees" / "moneta" / "database" / "finances.db"}')
+        herite = {'MONETA_FINANCES_DB': '/tmp/autre.db', 'MONETA_DRIVE_DOSSIER': '/tmp/ailleurs'}
+        with tempfile.TemporaryDirectory() as temp:
+            reel, env = self.monde(temp, **herite)
+            with env, mock.patch.object(chemins, 'REAL_HOME', reel):  # une installation : home() rend son dossier réel
+                chemins.environnement_reel()
+                self.assertEqual((os.environ.get('MONETA_FINANCES_DB'), os.environ.get('MONETA_DRIVE_DOSSIER')), (None, None))
+                self.assertEqual(chemins.finances_db(), reel / 'database' / 'finances.db')
         # Dans un monde fictif suivi, rien n'est retiré : les tests et --fictif s'en servent.
-        self.assertEqual(python(code, MONETA_FINANCES_DB='/tmp/autre.db', MONETA_DRIVE_DOSSIER='/tmp/ailleurs',
-                                MONETA_HOME=os.environ['MONETA_HOME']), '/tmp/autre.db /tmp/ailleurs /tmp/autre.db')
+        for reel in (None, Path('/installation-fictive/moneta')):
+            with mock.patch.dict(os.environ, herite), mock.patch.object(chemins, 'REAL_HOME', reel):
+                chemins.environnement_reel()
+                self.assertEqual(os.environ['MONETA_FINANCES_DB'], '/tmp/autre.db')
+                self.assertEqual(chemins.drive(), Path('/tmp/ailleurs'))
 
     def test_chaque_programme_de_tete_l_appelle_au_debut_de_main(self):
         for nom in TETES:
@@ -66,7 +96,10 @@ class TestR9(unittest.TestCase):
 
 class TestR11(unittest.TestCase):
     def test_moneta_home_non_suivi_refuse(self):
-        essai = PERSONNEL / 'essai-revue-t074' / 'moneta'
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        (Path(temp.name) / installation.MARQUE).write_bytes(b'')
+        essai = Path(temp.name) / 'essai-revue-t074' / 'moneta'
         self.assertFalse(essai.parent.exists())
         env = {k: v for k, v in os.environ.items() if not k.startswith(('MONETA_', 'UGOD_'))}
         fait = subprocess.run([str(ROOT / 'bin' / 'moneta-construire-releve')], capture_output=True, text=True, timeout=60,

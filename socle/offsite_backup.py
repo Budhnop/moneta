@@ -44,6 +44,17 @@ def check_destination(destination, data_home, proprietaire="de l'agent"):
     return destination
 
 
+def check_locale(destination, data_home):
+    """Only the private sauvegardes folder directly under the data folder, without links."""
+    destination = Path(destination).expanduser().absolute()
+    attendu = Path(data_home).expanduser().absolute() / 'sauvegardes'
+    if destination != attendu or any(p.is_symlink() for p in (destination, *destination.parents)):
+        raise ValueError('Destination locale refusée : sauvegardes dans les données, sans lien, seulement.')
+    if not destination.is_dir() or stat.S_IMODE(destination.stat().st_mode) != 0o700:
+        raise ValueError('Destination locale refusée : dossier sauvegardes en 700 requis.')
+    return destination
+
+
 def same_device(a, b):
     return os.stat(a).st_dev == os.stat(b).st_dev
 
@@ -181,25 +192,35 @@ def run(command, passphrase, message):
 
 
 def create_backup(destination, passphrase, remplir, *, data_home, volume, sorte, hdiutil="/usr/bin/hdiutil", now=None,
-                  proprietaire="de l'agent"):
+                  proprietaire="de l'agent", locale=False):
     """Build, encrypt, copy and verify into the kind's folder of the destination; returns (final image path, files checked).
     remplir(folder) fills the image and returns {relative: digest}; sorte is (subfolder, name prefix); volume is the volume's
     name without its time. A failure leaves no image at destination."""
     data_home = Path(data_home)
-    destination = check_destination(destination, data_home, proprietaire)
+    destination = check_locale(destination, data_home) if locale else check_destination(destination, data_home, proprietaire)
     if len(passphrase) < MINIMUM_PASSPHRASE:
         raise ValueError(f"Mot de passe trop court : au moins {MINIMUM_PASSPHRASE} caractères.")
     subfolder, prefix = sorte
+    if locale and (type(subfolder) is not str or type(prefix) is not str or
+                   subfolder not in ('',) and (Path(subfolder).name != subfolder or subfolder in ('.', '..')) or
+                   prefix and Path(prefix).name != prefix):
+        raise ValueError('Destination locale refusée : sorte ne doit pas sortir du dossier sauvegardes.')
     destination = destination / subfolder
     if destination.is_symlink():
         raise ValueError(f"« {subfolder} » est un lien à la destination : refusé.")
     destination.mkdir(exist_ok=True, mode=0o700)
+    if locale and stat.S_IMODE(destination.stat().st_mode) != 0o700:
+        raise ValueError('Destination locale refusée : sous-dossier en 700 requis.')
     stamp = (now or datetime.now()).strftime("%Y-%m-%d_%H%M%S")
     name = f"{prefix}{stamp}.dmg"
     final = destination / name
     if final.exists():
         raise ValueError(f"Une sauvegarde porte déjà ce nom : {final}")
-    with tempfile.TemporaryDirectory(prefix="socle-image-") as work:
+    # Review T069 of Thot, R04: a local image is built under the data's sauvegardes folder (700), never in $TMPDIR, so the
+    # plain copy never leaves the agent's data.
+    racine_locale = destination.parent if locale and subfolder else destination
+    with tempfile.TemporaryDirectory(prefix=".travail-" if locale else "socle-image-",
+                                     dir=racine_locale if locale else None) as work:
         work = Path(work)
         content = work / "contenu"
         content.mkdir(mode=0o700)

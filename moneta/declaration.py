@@ -16,8 +16,8 @@ TEXTES = Textes(
     message_consigne="Un texte ressemble à une consigne; il est mis de côté. Ugo peut le lire dans l'app d'origine.",
     modes={'go': "go : attends le oui d'Ugo; aucune fenêtre.",
            'fenetre': f"fenêtre : dis à Ugo d'y cliquer Enregistrer ({SECONDES_FENETRE} secondes)."},
-    cle_adresses='adresses_ugo',
-    raison_adresse='adresse_ugo',
+    cle_adresses='adresses_proprietaire',
+    raison_adresse='adresse_proprietaire',
 )
 
 
@@ -35,7 +35,8 @@ def noms_outils():
 DECLARATION = Declaration(
     nom='moneta',
     dossier_donnees=chemins.home,
-    dossiers_reels=(chemins.REAL_HOME,),
+    dossiers_reels=tuple(d for d in (chemins.REAL_HOME,) if d),
+    installation=chemins.INSTALLATION,
     bases=lambda: (chemins.finances_db(),),
     dossiers_sortie=lambda: (chemins.drive(),),
     outil=outil,

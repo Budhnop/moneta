@@ -13,7 +13,7 @@ from moneta.chemins import PAQUET, backups, environnement_reel, finances_db, hom
 from moneta.outils.lot import SourceStore  # noqa: E402
 from moneta.outils.mcp_finances import VARIABLE, FinancesReads, finances_lot  # noqa: E402
 from moneta.outils.serveur import McpServer  # noqa: E402
-from socle import confirmation  # noqa: E402
+from socle import confirmation, installation  # noqa: E402
 from socle.copie_privee import CopiePrivee  # noqa: E402
 from socle.migrations import migrate, pending  # noqa: E402
 
@@ -30,10 +30,14 @@ def log(text):
 def serveur_fictif(folder, ecriture=True, registre=None):
     """Server on a fictitious base inside folder: every default place (exports, backups, journals, Drive) inside it too."""
     os.environ["MONETA_HOME"] = folder
-    if home() != Path(folder):
-        # A temporary folder under ~/_PersonalAgents (TMPDIR not writable: Python falls back to the current folder) is never
+    try:
+        suivi = home() == Path(folder)
+    except installation.EtatRefuse:  # not installed: no real folder to fall back on
+        suivi = False
+    if not suivi:
+        # A temporary folder inside a real one (TMPDIR not writable: Python falls back to the current folder) is never
         # followed, so every default place would be the real one: stop before anything is written.
-        log("Moneta MCP --fictif : le dossier temporaire est sous ~/_PersonalAgents; arrêt.")
+        log("Moneta MCP --fictif : le dossier temporaire est dans un dossier réel; arrêt.")
         sys.exit(2)
     (Path(folder) / "drive").mkdir(exist_ok=True)
     os.environ["MONETA_DRIVE_DOSSIER"] = str(Path(folder) / "drive")

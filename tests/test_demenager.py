@@ -714,6 +714,7 @@ class TestProcessus(unittest.TestCase):
 
 def lancer(*arguments, entree=''):
     env = {k: v for k, v in os.environ.items() if not k.startswith(('MONETA_', 'UGOD_'))}
+    env['MONETA_HOME'] = os.environ['MONETA_HOME']  # le monde fictif de la suite : sans installation, Moneta ne démarre pas sans lui
     return subprocess.run([str(ROOT / 'bin' / 'moneta-demenager'), *map(str, arguments)], capture_output=True, text=True,
                           timeout=300, input=entree, env=env)
 

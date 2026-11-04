@@ -29,7 +29,7 @@ class Inventaire(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.folder = self.temp.name
-        self.env = patch.dict(os.environ, {'UGOD_SIGNAL_TEXTE': str(Path(self.folder) / 'signaux' / 'texte-autrui.json')})
+        self.env = patch.dict(os.environ, {'SOCLE_SIGNAL_TEXTE': str(Path(self.folder) / 'signaux' / 'texte-autrui.json')})
         self.env.start()  # rend aussi MONETA_HOME et les autres variables que serveur_fictif change
         self.auto = patch.object(confirmation, 'AUTOMATIC', True)
         self.auto.start()
@@ -196,7 +196,7 @@ class TestRevues002(Inventaire):
                 f"appeler('paiement_preparer', {{'membre': 'Alice Exemple', 'montant': {montant}, 'mode': 'comptant'}})\n"
                 "print(json.dumps(appeler('WR_SAVE_DOJO_BD', {'code': appeler('lot_preparer')['structuredContent']['code']})))\n")
         env = {k: v for k, v in os.environ.items() if not k.startswith(('UGOD_', 'MONETA_'))}
-        env.update(UGOD_SIGNAL_TEXTE=os.environ['UGOD_SIGNAL_TEXTE'], PYTHONPATH=str(SMITH / 'assistant'),
+        env.update(UGOD_SIGNAL_TEXTE=os.environ["SOCLE_SIGNAL_TEXTE"], PYTHONPATH=str(SMITH / 'assistant'),
                    PYTHONDONTWRITEBYTECODE='1')
         fait = subprocess.run([str(SMITH / '.venv' / 'bin' / 'python'), '-c', 'import core\n' + code, self.folder],
                               cwd=SMITH / 'assistant', env=env, capture_output=True, text=True, timeout=60)

@@ -16,7 +16,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from moneta import chemins, regles
 from moneta.declaration import DECLARATION
 from outils_tests import SMITH, FausseFenetre
-from socle import confirmation, declaration, politique, signal_texte
+from socle.chemins import write_private
+from socle import confirmation, declaration, installation, politique, signal_texte
 from test_banque import CHEQUING, DOJO_LINES, PERSO_LINES, SAVINGS, ofx, statement
 from test_ecritures_finances import Ecritures, call
 
@@ -41,7 +42,7 @@ class Protections(Ecritures):
     def setUp(self):
         super().setUp()
         self.home = self.folder / 'home'
-        self.signal_fichier = Path(os.environ['UGOD_SIGNAL_TEXTE'])
+        self.signal_fichier = Path(os.environ['SOCLE_SIGNAL_TEXTE'])
 
 
 class TestGoSousLesPlafonds(Protections):
@@ -118,9 +119,13 @@ class TestFenetre(Protections):
 class TestSignalCommun(Protections):
     def test_un_signal_de_smith_thot_ou_atlas_ouvre_la_fenetre_de_moneta(self):
         self.finances()
+        # Socle 2.0 (R4) : un agent n'écrit jamais au nom d'un autre. Les autres écrivent par leur propre code; ici, leur signal est
+        # posé tel quel, et l'écosystème du banc d'essai (ecosysteme.toml à côté des données) dit qu'ils sont connus.
+        write_private(self.folder, 'ecosysteme.toml', b'agents = ["moneta", "smith", "thot", "atlas"]\n')
         for par in ('thot', 'atlas'):
             with self.subTest(par=par):
-                signal_texte.inscrire(par=par, maintenant=datetime.now(timezone.utc) - timedelta(minutes=5))
+                moment = datetime.now(timezone.utc) - timedelta(minutes=5)
+                signal_texte._ecrire({'version': 1, 'dernier_rendu': moment.strftime('%Y-%m-%dT%H:%M:%SZ'), 'par': par})
                 self.expense(10)
                 self.window(self.ok('finances_lot_preparer'), ['texte_autrui_recent'])
         # Smith par son propre code, sur le même signal.
@@ -200,8 +205,8 @@ class TestDeclaration(unittest.TestCase):
         self.assertEqual(agent.bases(), (chemins.finances_db(),))
         self.assertEqual(agent.bases()[0].name, 'finances.db')
         self.assertEqual(agent.dossiers_sortie(), (chemins.drive(),))
-        self.assertEqual(agent.dossiers_reels, (chemins.REAL_HOME,))
-        self.assertEqual(chemins.REAL_HOME, Path.home() / '_PersonalAgents' / 'donnees' / 'moneta')
+        self.assertEqual(agent.dossiers_reels, tuple(d for d in (chemins.REAL_HOME,) if d))
+        self.assertEqual(chemins.REAL_HOME, installation.dossier_reel(chemins.INSTALLATION, 'moneta'))
 
     def test_aucun_outil_du_dojo(self):
         noms = set(DECLARATION.noms_outils())

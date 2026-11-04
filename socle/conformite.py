@@ -20,7 +20,7 @@ import tempfile
 import tomllib
 import unittest
 
-from socle import declaration, empreinte
+from socle import declaration, empreinte, installation
 from socle.chemins import write_private
 
 REGLES = {
@@ -33,10 +33,12 @@ REGLES = {
     'C7': 'données',
     'C8': 'dépendances',
     'C9': 'hygiène des tests',
+    'C10': 'cadre versionné',
+    'C11': 'portable',
 }
-PROFILS = ('lecture', 'lot')
+PROFILS = ('lecture', 'lot', 'versionne')
 # Les destinations de nuit permises par profil (le profil versionné, à l'étape 5 : jamais Drive).
-DESTINATIONS = {'lecture': ('DESTINATION', 'DISQUE'), 'lot': ('DESTINATION', 'DISQUE')}
+DESTINATIONS = {'lecture': ('DESTINATION', 'DISQUE'), 'lot': ('DESTINATION', 'DISQUE'), 'versionne': ('DISQUE',)}
 SORTIES = ('drive',)  # une sortie directe du Mac, chacune listée avec sa décision
 RESEAU = ('socket', 'ssl', 'http', 'urllib', 'smtplib', 'ftplib', 'poplib', 'imaplib', 'telnetlib', 'xmlrpc', 'socketserver',
           'webbrowser', 'asyncio')
@@ -94,12 +96,10 @@ def charger(racine):
         raise ConformiteInvalide('conformite.toml absent à la racine de l’agent : profil, sorties et exceptions y sont écrits.') from None
     except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as exc:
         raise ConformiteInvalide(f'conformite.toml illisible : {exc}') from None
-    inconnues = set(brut) - {'profil', 'sortie', 'exception'}
+    inconnues = set(brut) - {'profil', 'sortie', 'exception', 'portable', 'chemins', 'voisins', 'mots_interdits'}
     if inconnues:
         raise ConformiteInvalide(f'conformite.toml : clés inconnues {", ".join(sorted(inconnues))}.')
     profil = brut.get('profil')
-    if profil == 'versionne':
-        raise ConformiteInvalide("conformite.toml : le profil versionné vient à l'étape 5, avec l'écriture versionnée du socle.")
     if profil not in PROFILS:
         raise ConformiteInvalide(f'conformite.toml : profil {profil!r}; attendu {" ou ".join(PROFILS)}.')
     sorties = {}
@@ -119,7 +119,20 @@ def charger(racine):
         if une['regle'] not in REGLES:
             raise ConformiteInvalide(f"conformite.toml : l'exception {i} vise la règle inconnue {une['regle']!r}.")
         exceptions.append(une)
-    return {'profil': profil, 'sorties': sorties, 'exceptions': exceptions}
+    portable = brut.get('portable', False)
+    if type(portable) is not bool:
+        raise ConformiteInvalide('conformite.toml : portable vaut true ou false (règle C11).')
+    chemins = brut.get('chemins')
+    if chemins is not None and (type(chemins) is not str or not re.fullmatch(r'[a-z_]+(?:\.[a-z_]+)*', chemins)):
+        raise ConformiteInvalide('conformite.toml : chemins est un nom de module (par exemple core.paths).')
+    voisins = brut.get('voisins', [])
+    if not isinstance(voisins, list) or not all(type(v) is str and installation.NOM.match(v) for v in voisins):
+        raise ConformiteInvalide('conformite.toml : voisins est une liste de noms d’agents (a-z).')
+    mots = brut.get('mots_interdits', [])
+    if not isinstance(mots, list) or not all(type(m) is str and m.strip() for m in mots):
+        raise ConformiteInvalide('conformite.toml : mots_interdits est une liste de textes non vides.')
+    return {'profil': profil, 'sorties': sorties, 'exceptions': exceptions, 'portable': portable, 'chemins': chemins,
+            'voisins': tuple(voisins), 'mots_interdits': tuple(mots)}
 
 
 def _relatif(racine, chemin):
@@ -163,7 +176,7 @@ def _importes(noeud):
 
 
 def _chaines(noeud):
-    """Les morceaux constants d'un chemin, dans l'ordre : écrit avec / ou + (Path.home() / '_PersonalAgents' / 'smith'), ou par
+    """Les morceaux constants d'un chemin, dans l'ordre : écrit avec / ou + (Path.home() / 'agents' / 'smith'), ou par
     os.path.join, joinpath, Path(...)."""
     if isinstance(noeud, ast.BinOp) and isinstance(noeud.op, (ast.Div, ast.Add)):
         return _chaines(noeud.left) + _chaines(noeud.right)
@@ -252,8 +265,25 @@ class Agent:
                              'PYTHONPATH vise une autre copie.')
         return declaration.actuelle()
 
+    def installation(self):
+        """L'installation de cet agent (installation.toml à sa racine), ou None; InstallationInvalide si elle ne peut être crue."""
+        return installation.lire(self.racine)
+
     def autres(self):
-        return [a for a in declaration.PAR if a != self.nom]
+        """Les agents dont le code de celui-ci ne doit jamais viser les données : voisins de conformite.toml, plus l'écosystème
+        de son installation s'il est inscrit (spec 017 : aucune liste dans le socle)."""
+        noms = set(self.config['voisins'])
+        try:
+            inst = self.installation()
+            eco = installation.ecosysteme(inst.racine) if inst else None
+        except OSError:
+            eco = None
+        if eco:
+            noms |= set(eco.agents)
+        return sorted(noms - {self.nom})
+
+    def module_chemins(self):
+        return self.config['chemins'] or f'{self.module}.chemins'
 
 
 # Chaque règle rend ses constats, avant les exceptions.
@@ -263,21 +293,31 @@ def c1_base(agent):
     d = agent.declaration()
     if d.nom != agent.nom:
         out.append(Constat('C1', 'declaration', 'nom', f'déclaré « {d.nom} », paquet « {agent.nom} » : un agent, un nom.'))
-    reel = Path.home() / '_PersonalAgents' / 'donnees' / agent.nom
-    if tuple(Path(c) for c in d.dossiers_reels) != (reel,):
-        out.append(Constat('C1', 'declaration', 'dossiers_reels', f'le seul dossier réel est {reel}.'))
+    try:
+        inst = agent.installation()
+    except OSError as exc:
+        inst = None
+        out.append(Constat('C1', 'installation.toml', 'installation', str(exc)))
+    if d.installation != inst:
+        out.append(Constat('C1', 'declaration', 'installation', 'la déclaration porte l’installation lue dans installation.toml.'))
+    reel = installation.dossier_reel(inst, agent.nom)
+    attendu = (reel,) if reel else ()
+    if tuple(Path(c) for c in d.dossiers_reels) != attendu:
+        out.append(Constat('C1', 'declaration', 'dossiers_reels', f'le seul dossier réel est celui de l’installation ({reel}).'))
     donnees = Path(d.dossier_donnees()).resolve()
     for base in d.bases():
         if not Path(base).resolve().is_relative_to(donnees):
             out.append(Constat('C1', 'declaration', 'bases', f'base {base} hors de dossier_donnees() ({donnees}).'))
     autres = agent.autres()
-    segment = re.compile(r'(?:_PersonalAgents|donnees)/(' + '|'.join(autres) + r')(?:/|$)')
+    if not autres:
+        return _uniques(out)
+    segment = re.compile(r'(?:^|/)(' + '|'.join(autres) + r')(?:/|$)')
     for fichier, objet, noeud in agent.noeuds(agent.module):
         morceaux = _chaines(noeud) if isinstance(noeud, (ast.BinOp, ast.Call)) else []
-        if isinstance(noeud, ast.Call) and not {'_PersonalAgents', 'donnees'} & set(morceaux):
-            morceaux = []  # un appel ne vise un autre agent que par le chemin des agents
+        if isinstance(noeud, ast.Call) and 'donnees' not in morceaux:
+            morceaux = []  # un appel ne vise un autre agent que par le chemin de ses données
         vise = next((m for m in morceaux if m in autres), None) if morceaux else None
-        if vise is None and isinstance(noeud, ast.Constant) and isinstance(noeud.value, str):
+        if vise is None and isinstance(noeud, ast.Constant) and isinstance(noeud.value, str) and '/' in noeud.value:
             trouve = segment.search(noeud.value)
             vise = trouve.group(1) if trouve else None
         if vise is not None:
@@ -298,6 +338,12 @@ def c2_profil(agent):
         if info is None:
             out.append(Constat('C2', 'declaration', nom, 'outil sans déclaration (outil(nom) rend None).'))
             continue
+        if profil == 'versionne':
+            if info.type not in ('lecture', 'versionnee') or nom.startswith('WR_SAVE_') or info.lot or info.confirmation:
+                out.append(Constat('C2', 'declaration', nom, 'profil versionne : lecture ou versionnee, sans lot ni confirmation.'))
+            if (info.type == 'versionnee') != (nom in d.regles.versionnees):
+                out.append(Constat('C2', 'declaration', nom, 'outil versionné absent de versionnees, ou entrée superflue.'))
+            continue
         if profil == 'lecture':
             if info.type != 'lecture':
                 out.append(Constat('C2', 'declaration', nom, f'outil « {info.type} » dans un agent en profil lecture.'))
@@ -313,6 +359,11 @@ def c2_profil(agent):
             out.append(Constat('C2', fichier, objet, f'outil servi « {nom} » absent du registre : ni type, ni lot, ni profil.'))
     if profil == 'lecture' and (d.regles.lots or d.regles.hors_wr):
         out.append(Constat('C2', 'declaration', 'regles', 'profil lecture : ni lot ni écriture hors WR_SAVE_.'))
+    if profil == 'versionne':
+        if d.regles.lots or d.regles.hors_wr or d.regles.juges or d.regles.avec_montant:
+            out.append(Constat('C2', 'declaration', 'regles', 'profil versionne : ni lot, hors_wr, juge ou montant.'))
+        if set(d.regles.versionnees) - declares:
+            out.append(Constat('C2', 'declaration', 'versionnees', 'outil versionné non déclaré.'))
     if profil == 'lot':
         if not d.regles.lots:
             out.append(Constat('C2', 'declaration', 'regles', 'profil lot sans lot déclaré.'))
@@ -346,6 +397,8 @@ def _outils_servis(agent):
 
 def c3_sorties(agent):
     out, drive = [], []
+    if agent.config['profil'] == 'versionne' and agent.config['sorties']:
+        out.append(Constat('C3', 'conformite.toml', 'sorties', 'profil versionne : aucune sortie du Mac listée.'))
     d = agent.declaration()
     if not tuple(d.dossiers_sortie()):
         out.append(Constat('C3', 'declaration', 'dossiers_sortie', 'au moins un dossier de sortie déclaré.'))
@@ -445,7 +498,8 @@ def c5_nuit(agent):
             if TROUSSEAU.match(noeud.value) and noeud.value != label:
                 out.append(Constat('C5', fichier, objet, f'trousseau d’un autre agent « {noeud.value} ».'))
             trouve = re.fullmatch(r'([A-Z]+)_SAUVEGARDE_[A-Z]+', noeud.value)
-            if trouve and trouve.group(1) != agent.NOM:
+            if trouve and (trouve.group(1) != agent.NOM or
+                           (agent.config['profil'] == 'versionne' and noeud.value not in permises)):
                 out.append(Constat('C5', fichier, objet, f'destination de nuit d’un autre agent « {noeud.value} ».'))
     if script.is_file() and service != label:
         out.append(Constat('C5', _relatif(agent.racine, script), 'KEYCHAIN_SERVICE', f'la phrase de passe est au trousseau sous {label}.'))
@@ -467,27 +521,47 @@ def c6_socle(agent):
 
 
 def c7_donnees(agent):
+    """Les dossiers se créent par socle.chemins; la racine vient de l'installation (installation.lire), jamais d'un chemin écrit
+    en dur; <AGENT>_HOME ne suit jamais un dossier marqué réel (spec 017, revue 006 P2-1)."""
     out = []
-    chemins = agent.paquet / 'chemins.py'
-    if not chemins.is_file() or not any(isinstance(n, ast.ImportFrom) and n.module == 'socle.chemins'
-                                         and any(a.name == 'private_folder' for a in n.names) for n in ast.walk(agent.arbre(chemins))):
-        out.append(Constat('C7', f'{agent.module}/chemins.py', 'private_folder', 'les dossiers se créent par socle.chemins.private_folder.'))
+    nom_module = agent.module_chemins()
+    relatif = nom_module.replace('.', '/') + '.py'
+    chemins = agent.racine / relatif
+    arbre = agent.arbre(chemins) if chemins.is_file() else None
+    if arbre is None or not any(isinstance(n, ast.ImportFrom) and n.module == 'socle.chemins'
+                                and any(a.name == 'private_folder' for a in n.names) for n in ast.walk(arbre)):
+        out.append(Constat('C7', relatif, 'private_folder', 'les dossiers se créent par socle.chemins.private_folder.'))
         return out
-    module = importlib.import_module(f'{agent.module}.chemins')
-    reel = Path.home() / '_PersonalAgents' / 'donnees' / agent.nom
-    if Path(getattr(module, 'REAL_HOME', '')) != reel:
-        out.append(Constat('C7', f'{agent.module}/chemins.py', 'REAL_HOME', f'attendu {reel}.'))
+    if not any(isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == 'lire'
+               and isinstance(n.func.value, ast.Name) and n.func.value.id == 'installation' for n in ast.walk(arbre)):
+        out.append(Constat('C7', relatif, 'installation', 'la racine se lit par installation.lire, jamais écrite en dur.'))
+    module = importlib.import_module(nom_module)
+    try:
+        attendu = installation.dossier_reel(agent.installation(), agent.nom)
+    except OSError:
+        attendu = None
+    trouve = getattr(module, 'REAL_HOME', 'absent')
+    if (None if trouve is None else Path(trouve) if isinstance(trouve, (str, Path)) else 'absent') != attendu:
+        out.append(Constat('C7', relatif, 'REAL_HOME', f'attendu {attendu} (installation.dossier_reel).'))
     variable = f'{agent.NOM}_HOME'
     avant = os.environ.get(variable)
-    try:
-        os.environ[variable] = str(Path.home() / '_PersonalAgents' / 'donnees' / f'{agent.nom}-essai-conformite')
-        if Path(module.home()) != reel:
-            out.append(Constat('C7', f'{agent.module}/chemins.py', 'home', f'{variable} sous ~/_PersonalAgents doit être ignorée.'))
-    finally:
-        if avant is None:
-            os.environ.pop(variable, None)
-        else:
-            os.environ[variable] = avant
+    with tempfile.TemporaryDirectory(prefix='conformite-reel-') as temp:
+        marque = Path(temp) / 'donnees' / agent.nom
+        marque.mkdir(parents=True, mode=0o700)
+        (marque / installation.MARQUE).write_bytes(b'')
+        try:
+            os.environ[variable] = str(marque / 'essai')
+            try:
+                suivi = Path(module.home()) == marque / 'essai'
+            except OSError:
+                suivi = False
+            if suivi:
+                out.append(Constat('C7', relatif, 'home', f'{variable} dans un dossier marqué réel doit être ignorée.'))
+        finally:
+            if avant is None:
+                os.environ.pop(variable, None)
+            else:
+                os.environ[variable] = avant
     try:
         verifier = importlib.import_module(f'{agent.module}.scripts.verifier')
         with tempfile.TemporaryDirectory(prefix='conformite-donnees-') as dossier:
@@ -570,7 +644,7 @@ def c9_tests(agent):
         for variable in sorted(variables - retirees):
             out.append(Constat('C9', 'tests/run_all.py', 'RETIREES', f'{variable} mène aux vraies données : jamais héritée.'))
         if not ecrit:
-            out.append(Constat('C9', 'tests/run_all.py', 'ecrire_resultat', f'le verdict de la suite va dans {RESULTAT} (smith-verifier).'))
+            out.append(Constat('C9', 'tests/run_all.py', 'ecrire_resultat', f'le verdict de la suite va dans {RESULTAT} (lu par le vérificateur).'))
         if not utilisee:
             out.append(Constat('C9', 'tests/run_all.py', 'RETIREES', 'déclarée mais jamais lue : les variables ne sont pas retirées.'))
     suite = tests / 'test_conformite.py'
@@ -598,6 +672,147 @@ def c9_tests(agent):
     return _uniques(out)
 
 
+def c10_versionne(agent):
+    """Le cadre ne doit pas être contourné; résout les alias d'import du code de l'agent."""
+    out = []
+    regle = agent.declaration().regles.regle_autrui
+    fichiers = {}
+    for fichier, objet, noeud in agent.noeuds(agent.module):
+        fichiers.setdefault(fichier, []).append((objet, noeud))
+    for fichier, noeuds in fichiers.items():
+        alias = {}
+        for _, n in noeuds:
+            if isinstance(n, ast.Import):
+                for a in n.names:
+                    alias[a.asname or a.name.split('.')[0]] = a.name if a.asname else a.name.split('.')[0]
+            if isinstance(n, ast.ImportFrom):
+                for a in n.names:
+                    alias[a.asname or a.name] = f'{n.module}.{a.name}'
+        def nom(n):
+            if isinstance(n, ast.Name):
+                return alias.get(n.id, n.id)
+            if isinstance(n, ast.Attribute):
+                return nom(n.value) + '.' + n.attr
+            return ''
+        for objet, n in noeuds:
+            if isinstance(n, ast.Call):
+                appele = nom(n.func)
+                parties = appele.split('.')
+                # Revue 015, R07 : les mêmes noms par n'importe quel module qui les réexporte (socle.mcp).
+                interdit = (appele.startswith(('socle.confirmation.', 'socle.lots.')) or
+                            appele.endswith('.asked_on_mac') or appele == 'asked_on_mac' or
+                            (appele.startswith('socle.') and parties[-1] in ('journal_intention', 'confirmed_on_mac', 'logged')) or
+                            (len(parties) >= 2 and parties[-2] == 'journal_ecritures'
+                             and parties[-1] in ('intention', 'resultat', '_ajouter')))
+                if regle == 'aucune' and (appele.endswith('.autrui') or appele == 'autrui'):
+                    interdit = True
+                if interdit:
+                    out.append(Constat('C10', fichier, objet, f'appel interdit au profil versionne : {appele}.'))
+            if regle == 'aucune' and isinstance(n, ast.Constant) and isinstance(n.value, str) and re.search(
+                    r'(?i)\b(?:insert|update|replace)\b.*\bmarque_(?:revue_)?signal\b', n.value):
+                out.append(Constat('C10', fichier, objet, "marque du signal malgré la règle aucune."))
+            if regle == 'refus_et_marque' and isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                arguments = [a.arg for a in (*n.args.posonlyargs, *n.args.args, *n.args.kwonlyargs)]
+                # Une fonction d'écriture qui reçoit l'auteur doit consulter la règle avant son SQL.
+                ecrit = any(isinstance(c, ast.Constant) and isinstance(c.value, str) and
+                            re.search(r'(?i)\b(?:insert|update|delete|replace)\b', c.value) for c in ast.walk(n))
+                if {'auteur', 'par_humain'} & set(arguments) and (ecrit or n.name in agent.declaration().regles.versionnees) and not any(isinstance(c, ast.Call) and
+                        nom(c.func).split('.')[-1] == 'autrui' for c in ast.walk(n)):
+                    out.append(Constat('C10', fichier, objet, "écriture avec auteur sans appel à autrui."))
+    return _uniques(out)
+
+
+# C11 « portable » (spec 017, R6) : un chemin personnel écrit en dur, dans une chaîne ou dans bin/.
+PERSONNEL = re.compile(r'^(?:/Users/|/home/|~(?:/|[a-z]|$))')
+PERSONNEL_BIN = re.compile(r'(?:^|[\s"\'=:(])(?:~(?:/|[a-z]|(?=[\s"\']|$))|/Users/|/home/|\$HOME\b|\$\{HOME\})')
+
+
+def _mot(mot):
+    """Un mot entier, sans égard à la casse : « Ana » ne se trouve ni dans « Diana » ni dans « anais »."""
+    return re.compile(r'(?<![^\W_])' + re.escape(mot) + r'(?![^\W_])', re.I)
+
+
+def _docstrings(arbre):
+    return {id(n.body[0].value) for n in ast.walk(arbre)
+            if isinstance(n, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and n.body
+            and isinstance(n.body[0], ast.Expr) and isinstance(n.body[0].value, ast.Constant)}
+
+
+def _textes_du_noeud(noeud):
+    """Ce que le code écrit lui-même dans ce noeud : une chaîne, un nom, un attribut, une fonction, un argument, un module importé."""
+    if isinstance(noeud, ast.Constant) and isinstance(noeud.value, str):
+        return [noeud.value]
+    if isinstance(noeud, ast.Name):
+        return [noeud.id]
+    if isinstance(noeud, ast.Attribute):
+        return [noeud.attr]
+    if isinstance(noeud, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+        return [noeud.name]
+    if isinstance(noeud, ast.arg):
+        return [noeud.arg]
+    if isinstance(noeud, ast.keyword) and noeud.arg:
+        return [noeud.arg]
+    if isinstance(noeud, ast.alias):
+        return [noeud.name, *([noeud.asname] if noeud.asname else [])]
+    if isinstance(noeud, ast.ImportFrom) and noeud.module:
+        return [noeud.module]
+    return []
+
+
+def _personnel(noeud):
+    """Pourquoi ce noeud vise un dossier personnel écrit en dur, sinon None."""
+    if isinstance(noeud, ast.Constant) and isinstance(noeud.value, str) and PERSONNEL.match(noeud.value):
+        return f'chemin personnel écrit en dur « {noeud.value[:60]} »'
+    if isinstance(noeud, ast.Call) and isinstance(noeud.func, ast.Attribute):
+        if noeud.func.attr == 'home' and isinstance(noeud.func.value, ast.Name) and noeud.func.value.id in ('Path', 'PosixPath'):
+            return 'Path.home() : le dossier réel vient de installation.toml, jamais du dossier personnel'
+    return None
+
+
+def c11_portable(agent):
+    """Le code du paquet et de bin/ ne nomme ni un dossier personnel, ni un autre agent, ni un mot interdit (R6). Les listes
+    viennent de conformite.toml (voisins, mots_interdits) et de l'écosystème de l'installation (agents, [portable] mots) :
+    le socle ne nomme personne. Les commentaires et les docstrings ne sont pas jugés."""
+    try:
+        inst = agent.installation()
+        eco = installation.ecosysteme(inst.racine) if inst else None
+    except OSError as exc:
+        return [Constat('C11', 'installation.toml', 'ecosysteme', f'écosystème illisible : {exc}')]
+    autres = [(a, _mot(a)) for a in agent.autres()]
+    mots = [(m, _mot(m)) for m in dict.fromkeys((*agent.config['mots_interdits'], *(eco.mots if eco else ())))]
+    out = []
+
+    def juger(fichier, objet, texte):
+        for nom, motif in autres:
+            if motif.search(texte):
+                out.append(Constat('C11', fichier, objet, f'nomme l’agent « {nom} » : un agent portable ne connaît pas les autres.'))
+        for mot, motif in mots:
+            if motif.search(texte):
+                out.append(Constat('C11', fichier, objet, f'contient « {mot} », un mot interdit (conformite.toml ou écosystème).'))
+
+    for chemin in agent.fichiers(agent.module):
+        arbre, fichier = agent.arbre(chemin), _relatif(agent.racine, chemin)
+        docs = _docstrings(arbre)
+        for objet, noeud in _objets(arbre):
+            if id(noeud) in docs:
+                continue
+            raison = _personnel(noeud)
+            if raison:
+                out.append(Constat('C11', fichier, objet, raison + '.'))
+            for texte in _textes_du_noeud(noeud):
+                juger(fichier, objet, texte)
+    for relatif, ligne in _textes_bin(agent.racine):
+        if PERSONNEL_BIN.search(ligne):
+            out.append(Constat('C11', relatif, 'programme', 'chemin personnel écrit en dur (~, /Users, $HOME).'))
+        juger(relatif, 'programme', ligne)
+    return _uniques(out)
+
+
+def _juges(config):
+    return {**JUGES, **({'C10': c10_versionne} if config['profil'] == 'versionne' else {}),
+            **({'C11': c11_portable} if config['portable'] else {})}
+
+
 def _uniques(constats):
     vus, out = set(), []
     for c in constats:
@@ -617,10 +832,25 @@ def _couvre(exception, constat):
 
 
 def bilan(racine, module):
-    """({règle: [constats restants]}, [exceptions qui ne servent plus]); ConformiteInvalide si conformite.toml ne va pas."""
+    """({règle: [constats restants]}, [exceptions qui ne servent plus]); ConformiteInvalide si conformite.toml ne va pas.
+
+    La suite juge toujours sur des données fictives (spec 017) : sans <AGENT>_HOME, un dossier temporaire le tient le temps du
+    jugement, pour qu'un agent non installé puisse se déclarer."""
+    variable = f'{module.upper()}_HOME'
+    if os.environ.get(variable):
+        return _bilan(racine, module)
+    with tempfile.TemporaryDirectory(prefix=f'conformite-{module}-') as temp:
+        os.environ[variable] = str(Path(temp) / module)
+        try:
+            return _bilan(racine, module)
+        finally:
+            os.environ.pop(variable, None)
+
+
+def _bilan(racine, module):
     agent = Agent(racine, module)
     restants, servies = {}, set()
-    for regle, juge in JUGES.items():
+    for regle, juge in _juges(agent.config).items():
         try:
             constats = juge(agent)
         except ConformiteInvalide:
@@ -667,7 +897,11 @@ def cas(racine, module):
                 self.fail('Exceptions qui ne servent plus, à retirer de conformite.toml :\n'
                           + '\n'.join(f"{e['regle']} {e['fichier']} ({e['objet']})" for e in inutiles))
 
-    for regle, juge in JUGES.items():
+    try:
+        juges = _juges(charger(racine))
+    except ConformiteInvalide:
+        juges = JUGES
+    for regle, juge in juges.items():
         nom = f'test_{juge.__name__}'
         setattr(Conformite, nom, lambda self, regle=regle: self.juger(regle))
         getattr(Conformite, nom).__name__ = nom
@@ -688,14 +922,16 @@ def ecrire_resultat(racine, vert, lances=None, maintenant=None):
     date et exceptions. Aucune donnée métier; lu par smith-verifier, qui ne lance jamais la suite (R5).
 
     lances : {fichier de tests : nombre de tests passés}. Vert seulement si la suite de conformité a passé en entier
-    (test_conformite.py, une méthode par règle et celle des exceptions) : sans elle, une suite verte ne prouve rien."""
+    (test_conformite.py, une méthode par règle jugée pour son profil, C10 et C11 comprises, et celle des exceptions) : sans elle,
+    une suite verte ne prouve rien."""
     racine = Path(racine)
-    vert = vert and bool(lances) and lances.get('test_conformite.py') == len(JUGES) + 1
+    vert = vert and bool(lances) and type(lances.get('test_conformite.py')) is int
     try:
         version = empreinte.lire_epingle(racine / 'socle.epingle.json')['version']
     except ValueError:
         version = None
     try:
+        vert = vert and lances.get('test_conformite.py') == len(_juges(charger(racine))) + 1
         exceptions = [{k: e[k] for k in ('regle', 'fichier', 'objet', 'decision')} for e in charger(racine)['exceptions']]
     except ConformiteInvalide:
         exceptions, vert = [], False

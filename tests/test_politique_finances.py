@@ -27,7 +27,7 @@ class Base(unittest.TestCase):
     def setUp(self):
         self.home = Path(tempfile.mkdtemp(prefix='moneta-politique-'))
         self.signal = self.home / 'signaux' / 'texte-autrui.json'
-        self.env = patch.dict(os.environ, {'MONETA_HOME': str(self.home), 'UGOD_SIGNAL_TEXTE': str(self.signal)})
+        self.env = patch.dict(os.environ, {'MONETA_HOME': str(self.home), 'SOCLE_SIGNAL_TEXTE': str(self.signal)})
         self.env.start()
         signal_texte.inscrire(maintenant=MAINTENANT - timedelta(minutes=31))  # ancien : rien
 

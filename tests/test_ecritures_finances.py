@@ -47,7 +47,7 @@ class Ecritures(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.folder = Path(self.temp.name)
         self.env = patch.dict(os.environ, {'MONETA_HOME': str(self.folder / 'home'),
-                                           'UGOD_SIGNAL_TEXTE': str(self.folder / 'signaux' / 'texte-autrui.json')})
+                                           'SOCLE_SIGNAL_TEXTE': str(self.folder / 'signaux' / 'texte-autrui.json')})
         self.env.start()
         signal_texte.inscrire(maintenant=datetime.now(timezone.utc) - timedelta(hours=2))
 
@@ -198,7 +198,7 @@ class TestFenetreRevient(Ecritures):
 
     def test_a_missing_or_future_signal_is_a_doubt(self):
         self.finances()
-        for spoil in (lambda: Path(os.environ['UGOD_SIGNAL_TEXTE']).unlink(),
+        for spoil in (lambda: Path(os.environ['SOCLE_SIGNAL_TEXTE']).unlink(),
                       lambda: signal_texte.inscrire(maintenant=datetime.now(timezone.utc) + timedelta(minutes=5))):
             spoil()
             self.expense(60)

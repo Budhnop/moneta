@@ -54,10 +54,45 @@ def ignorable(c):
     return unicodedata.category(c) in HIDDEN or any(lo <= ord(c) <= hi for lo, hi in IGNORABLE)
 
 
+class _Table(dict):
+    """str.translate table filled on first sight of each character: the same rule as before, character by character,
+    looked up in C afterwards (spec 015 of Smith, phase 7 : 10 000 journal entries within one second)."""
+
+    def __missing__(self, code):
+        c = chr(code)
+        valeur = c if c in '\n\t' else None if ignorable(c) else ' ' if unicodedata.category(c) == 'Zs' else c
+        self[code] = valeur
+        return valeur
+
+
+_TABLE = _Table()
+
+
 def visible(text):
     """text without invisible characters, every space a plain space; line breaks and tabs stay."""
-    return ''.join(c if c in '\n\t' else ' ' if unicodedata.category(c) == 'Zs' else c
-                   for c in text if c in '\n\t' or not ignorable(c))
+    return text.translate(_TABLE)
+
+
+# Revue T069 de Thot, R03 : un agent versionné n'a pas de fenêtre du Mac; ses citations restent fidèles. Les espaces Zs gardent
+# leur forme et les deux sélecteurs de présentation (FE0E texte, FE0F émoji) restent; tout ce qui porte des données sans se voir
+# (Cc hors \n et \t, Cf, Co, Cn, Cs, étiquettes, autres sélecteurs) est retiré comme partout.
+PRESENTATION = {'\ufe0e', '\ufe0f'}
+
+
+class _TableFidele(dict):
+    def __missing__(self, code):
+        c = chr(code)
+        valeur = c if c in '\n\t' or c in PRESENTATION else None if ignorable(c) else c
+        self[code] = valeur
+        return valeur
+
+
+_TABLE_FIDELE = _TableFidele()
+
+
+def fidele(text):
+    """text without the characters that carry data unseen; spaces and emoji presentation kept (versioned profile)."""
+    return text.translate(_TABLE_FIDELE)
 
 
 # Visible characters that can still blur the Mac's window (fresh-Claude review, P2-3, D054): combining marks piled on
@@ -172,7 +207,7 @@ def avertir(resultat, alertes):
     return resultat
 
 
-def _walk(value):
+def _walk(value, nettoyer=visible):
     """(value made visible and unmarked, field names of the marks, whether any mark was found)."""
     found, marks = set(), []
 
@@ -183,7 +218,7 @@ def _walk(value):
                 found.add(key)
             return walk(item.valeur, key)
         if isinstance(item, str):
-            return visible(item)
+            return nettoyer(item)
         if isinstance(item, (list, tuple)):
             return [walk(x, key) for x in item]
         if isinstance(item, dict):
@@ -194,15 +229,15 @@ def _walk(value):
     return walk(value, None), found, bool(marks)
 
 
-def cleaned(value):
+def cleaned(value, nettoyer=visible):
     """(value with every string made visible and every mark removed, the field names of someone else's text in it)."""
-    data, found, _ = _walk(value)
+    data, found, _ = _walk(value, nettoyer)
     return data, found
 
 
-def marked(data):
+def marked(data, nettoyer=visible):
     """(a tool result made visible, with the notice when it holds someone else's text; True when it does)."""
-    data, found, autrui = _walk(data)
+    data, found, autrui = _walk(data, nettoyer)
     if autrui and isinstance(data, dict):
         data = {**data, 'texte_externe': _texte('notice_autrui', NOTICE_NEUTRE).format(', '.join(sorted(found)) or 'de ce résultat')}
     return data, autrui

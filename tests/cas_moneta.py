@@ -78,7 +78,7 @@ def monde(entree):
         env = {'MONETA_HOME': str(dossier / 'home'), 'MONETA_FINANCES_DB': str(dossier / 'finances.db'),
                'MONETA_DRIVE_DOSSIER': str(dossier / 'drive'), 'PYTHONDONTWRITEBYTECODE': '1'}
         stack.enter_context(patch.dict(os.environ, env))
-        for variable in ('UGOD_SIGNAL_TEXTE', 'UGOD_SAUVEGARDE_DESTINATION'):
+        for variable in ('SOCLE_SIGNAL_TEXTE', 'UGOD_SAUVEGARDE_DESTINATION'):
             os.environ.pop(variable, None)
         for path in ('home/imports', 'drive'):
             (dossier / path).mkdir(parents=True)

@@ -13,7 +13,7 @@ from pathlib import Path
 from socle.declaration import DeclarationAbsente, actuelle
 from socle.externe import mixed_scripts
 
-CHAMPS = ('calendriers_prives', 'listes_privees', 'adresses_ugo')
+CHAMPS = ('calendriers_prives', 'listes_privees', 'adresses_proprietaire')
 TEXTE_MAX = 80
 ELEMENTS_MAX = 20
 
@@ -22,7 +22,7 @@ ELEMENTS_MAX = 20
 class Configuration:
     calendriers_prives: tuple = ()
     listes_privees: tuple = ()
-    adresses_ugo: tuple = ()
+    adresses_proprietaire: tuple = ()
     configuree: bool = False
     # Names dropped for mixing scripts, for the agent's checker to name.
     ignores: tuple = ()
@@ -70,12 +70,12 @@ def liste_privee(nom, noms, config=None):
     return _prive(nom, noms, (config or charger()).listes_privees)
 
 
-def adresse_ugo(adresse, config=None):
+def adresse_proprietaire(adresse, config=None):
     """The organiser's address (EventKit gives mailto:…), compared without case; never a display name."""
     if not isinstance(adresse, str) or not adresse:
         return False
     adresse = adresse[len('mailto:'):] if adresse.casefold().startswith('mailto:') else adresse
-    return adresse.casefold() in {a.casefold() for a in (config or charger()).adresses_ugo}
+    return adresse.casefold() in {a.casefold() for a in (config or charger()).adresses_proprietaire}
 
 
 def _raison_adresse():
@@ -100,5 +100,5 @@ def juger(evenement, prive, config=None):
     if moi:
         return True, 'organisateur_moi'
     if adresse:
-        return (True, _raison_adresse()) if adresse_ugo(adresse, config) else (False, 'organisateur')
+        return (True, _raison_adresse()) if adresse_proprietaire(adresse, config) else (False, 'organisateur')
     return (True, 'calendrier_prive') if prive else (False, 'organisateur_absent')

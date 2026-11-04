@@ -4,7 +4,9 @@ __pycache__/
 *.pyc
 # Le verdict de la suite, lu par smith-verifier (socle.conformite, spec 014 de Smith)
 .conformite.json
-# Aucune donnée dans le dépôt : elles vivent dans ~/_PersonalAgents/donnees/moneta (R6)
+# Où vit cet agent (bin/moneta-installer) : propre à chaque machine, jamais commité
+installation.toml
+# Aucune donnée dans le dépôt : elles vivent dans la racine de l'installation, hors du code (R6)
 *.db
 *.db-wal
 *.db-shm
