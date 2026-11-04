@@ -96,7 +96,7 @@ def charger(racine):
         raise ConformiteInvalide('conformite.toml absent à la racine de l’agent : profil, sorties et exceptions y sont écrits.') from None
     except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as exc:
         raise ConformiteInvalide(f'conformite.toml illisible : {exc}') from None
-    inconnues = set(brut) - {'profil', 'sortie', 'exception', 'portable', 'chemins', 'voisins', 'mots_interdits'}
+    inconnues = set(brut) - {'profil', 'sortie', 'exception', 'portable', 'chemins', 'voisins', 'mots_interdits', 'forme'}
     if inconnues:
         raise ConformiteInvalide(f'conformite.toml : clés inconnues {", ".join(sorted(inconnues))}.')
     profil = brut.get('profil')
@@ -131,12 +131,42 @@ def charger(racine):
     mots = brut.get('mots_interdits', [])
     if not isinstance(mots, list) or not all(type(m) is str and m.strip() for m in mots):
         raise ConformiteInvalide('conformite.toml : mots_interdits est une liste de textes non vides.')
+    forme = _forme(brut['forme']) if 'forme' in brut else None
     return {'profil': profil, 'sorties': sorties, 'exceptions': exceptions, 'portable': portable, 'chemins': chemins,
-            'voisins': tuple(voisins), 'mots_interdits': tuple(mots)}
+            'voisins': tuple(voisins), 'mots_interdits': tuple(mots), 'forme': forme}
+
+
+MODULE = re.compile(r'[a-z_]+(?:\.[a-z_]+)*')
+PAQUET = re.compile(r'[a-z_]+(?:\.py)?')
+CLES_FORME = ('paquets', 'declaration', 'scripts', 'bin', 'prefixe')
+
+
+def _forme(table):
+    """Spec 017 (R8) : la forme d'un agent qui n'a pas celle du gabarit (Smith). paquets : le code jugé, des dossiers ou des
+    modules seuls à la racine, à la place de <agent>/; declaration : le module qui déclare l'agent; scripts : le paquet de son
+    vérificateur et de sa nuit; bin : ses programmes, à la racine ou juste au-dessus; prefixe : celui de ses variables
+    (<PREFIXE>_HOME, <PREFIXE>_SAUVEGARDE_*). Toutes les clés sont écrites : aucune valeur par défaut cachée."""
+    if not isinstance(table, dict) or set(table) != set(CLES_FORME):
+        raise ConformiteInvalide(f'conformite.toml : [forme] a exactement {", ".join(CLES_FORME)}.')
+    paquets = table['paquets']
+    if not isinstance(paquets, list) or not paquets or not all(type(p) is str and PAQUET.fullmatch(p) for p in paquets) \
+            or len(set(paquets)) != len(paquets):
+        raise ConformiteInvalide('conformite.toml : [forme] paquets est une liste de dossiers ou de modules de la racine (a-z, _).')
+    tetes = {p.removesuffix('.py') for p in paquets}
+    for cle in ('declaration', 'scripts'):
+        valeur = table[cle]
+        if type(valeur) is not str or not MODULE.fullmatch(valeur) or valeur.split('.')[0] not in tetes:
+            raise ConformiteInvalide(f'conformite.toml : [forme] {cle} est un module de l’un des paquets.')
+    if table['bin'] not in ('bin', '../bin'):
+        raise ConformiteInvalide('conformite.toml : [forme] bin vaut « bin » ou « ../bin ».')
+    if type(table['prefixe']) is not str or not re.fullmatch(r'[A-Z][A-Z0-9]*', table['prefixe']):
+        raise ConformiteInvalide('conformite.toml : [forme] prefixe est en majuscules (A-Z, 0-9).')
+    return {**table, 'paquets': tuple(paquets)}
 
 
 def _relatif(racine, chemin):
-    return chemin.relative_to(racine).as_posix()
+    """Le chemin vu de la racine; ../bin/… pour les programmes d'une forme dont bin/ est au-dessus (spec 017)."""
+    return Path(os.path.relpath(chemin, racine)).as_posix()
 
 
 def _arbre(chemin):
@@ -218,9 +248,10 @@ def _sortie_de_commande(commande):
     return None
 
 
-def _textes_bin(racine):
+def _textes_bin(agent):
     """(relatif, ligne) des programmes de bin/, commentaires exclus."""
-    for programme in sorted((racine / 'bin').glob('*')):
+    racine = agent.racine
+    for programme in sorted(agent.bin.glob('*')):
         if programme.is_file() and not programme.is_symlink():
             relatif = _relatif(racine, programme)
             for ligne in programme.read_text(encoding='utf-8', errors='replace').splitlines()[1:]:
@@ -233,15 +264,24 @@ class Agent:
 
     def __init__(self, racine, module):
         self.racine, self.module = Path(racine).resolve(), module
-        self.nom, self.NOM = module, module.upper()
         self.config = charger(self.racine)
-        self.paquet = self.racine / module
+        forme = self.config['forme']
+        # Sans [forme], celle du gabarit : <agent>/, <agent>.scripts, bin/, <AGENT>_ (spec 017, R8).
+        self.nom, self.NOM = module, forme['prefixe'] if forme else module.upper()
+        self.paquets = forme['paquets'] if forme else (module,)
+        self.module_declaration = forme['declaration'] if forme else module
+        self.scripts = forme['scripts'] if forme else f'{module}.scripts'
+        self.bin = self.racine / (forme['bin'] if forme else 'bin')
+        self.paquet = self.racine / self.module_declaration.replace('.', '/')
         self._arbres = {}
 
     def fichiers(self, *dossiers, profond=True):
         trouves = []
         for dossier in dossiers:
             base = self.racine / dossier
+            if dossier.endswith('.py'):
+                trouves += [base] if base.is_file() else []
+                continue
             motif = base.rglob('*.py') if profond else base.glob('*.py')
             trouves += [p for p in motif if '__pycache__' not in p.relative_to(self.racine).parts]
         return sorted(trouves)
@@ -258,10 +298,10 @@ class Agent:
                 yield _relatif(self.racine, chemin), objet, noeud
 
     def declaration(self):
-        paquet = importlib.import_module(self.module)
+        paquet = importlib.import_module(self.module_declaration)
         fichier = Path(getattr(paquet, '__file__', None) or '/').resolve()
         if not fichier.is_relative_to(self.paquet):
-            raise ValueError(f'paquet « {self.module} » chargé depuis {fichier.parent}, hors de la racine jugée ({self.racine}) : '
+            raise ValueError(f'paquet « {self.module_declaration} » chargé depuis {fichier.parent}, hors de la racine jugée ({self.racine}) : '
                              'PYTHONPATH vise une autre copie.')
         return declaration.actuelle()
 
@@ -312,7 +352,7 @@ def c1_base(agent):
     if not autres:
         return _uniques(out)
     segment = re.compile(r'(?:^|/)(' + '|'.join(autres) + r')(?:/|$)')
-    for fichier, objet, noeud in agent.noeuds(agent.module):
+    for fichier, objet, noeud in agent.noeuds(*agent.paquets):
         morceaux = _chaines(noeud) if isinstance(noeud, (ast.BinOp, ast.Call)) else []
         if isinstance(noeud, ast.Call) and 'donnees' not in morceaux:
             morceaux = []  # un appel ne vise un autre agent que par le chemin de ses données
@@ -322,7 +362,7 @@ def c1_base(agent):
             vise = trouve.group(1) if trouve else None
         if vise is not None:
             out.append(Constat('C1', fichier, objet, f'chemin vers le dépôt ou les données de « {vise} » : une base, un propriétaire.'))
-    for relatif, ligne in _textes_bin(agent.racine):
+    for relatif, ligne in _textes_bin(agent):
         trouve = segment.search(ligne)
         if trouve:
             out.append(Constat('C1', relatif, 'programme', f'chemin vers le dépôt ou les données de « {trouve.group(1)} ».'))
@@ -376,7 +416,7 @@ def c2_profil(agent):
 
 def _outils_servis(agent):
     """(fichier, objet, nom) des outils que le code sert : les 'name' des listes tools et les clés des dicts handlers."""
-    for fichier, objet, noeud in agent.noeuds(agent.module):
+    for fichier, objet, noeud in agent.noeuds(*agent.paquets):
         if not isinstance(noeud, (ast.Assign, ast.AnnAssign)):
             continue
         cibles = noeud.targets if isinstance(noeud, ast.Assign) else [noeud.target]
@@ -402,7 +442,7 @@ def c3_sorties(agent):
     d = agent.declaration()
     if not tuple(d.dossiers_sortie()):
         out.append(Constat('C3', 'declaration', 'dossiers_sortie', 'au moins un dossier de sortie déclaré.'))
-    for fichier, objet, noeud in agent.noeuds(agent.module):
+    for fichier, objet, noeud in agent.noeuds(*agent.paquets):
         for nom in _importes(noeud):
             if nom.split('.')[0] in RESEAU or nom.startswith(RESEAU_SOUS):
                 out.append(Constat('C3', fichier, objet, f'import réseau « {nom} » : rien ne sort du Mac sans décision.'))
@@ -416,7 +456,7 @@ def c3_sorties(agent):
             if DRIVE.search(noeud.value):
                 drive.append(Constat('C3', fichier, objet, 'Google Drive (ou un autre nuage) est une sortie du Mac : la lister dans '
                                                          'conformite.toml.'))
-    for relatif, ligne in _textes_bin(agent.racine):
+    for relatif, ligne in _textes_bin(agent):
         trouve = BIN_SORTIE.search(ligne)
         if trouve:
             out.append(Constat('C3', relatif, 'programme', f'programme qui sort du Mac ou interpréteur « {trouve.group(1)} ».'))
@@ -435,7 +475,7 @@ def c4_autrui(agent):
     if not d.textes.notice_autrui.strip():
         out.append(Constat('C4', 'declaration', 'notice_autrui', "texte vide : le modèle doit savoir ce qui vient d'autrui."))
     serveurs = 0
-    for fichier, objet, noeud in agent.noeuds(agent.module):
+    for fichier, objet, noeud in agent.noeuds(*agent.paquets):
         if isinstance(noeud, ast.ClassDef) and any(
                 (isinstance(b, ast.Name) and b.id == 'ServeurBase') or (isinstance(b, ast.Attribute) and b.attr == 'ServeurBase')
                 for b in noeud.bases):
@@ -487,11 +527,11 @@ def c5_nuit(agent):
     permises = {f'{agent.NOM}_SAUVEGARDE_{d}' for d in DESTINATIONS[agent.config['profil']]}
     for cle in sorted(set(tache.get('EnvironmentVariables') or {}) - permises):
         out.append(Constat('C5', relatif, cle, f'variable hors des destinations permises au profil {agent.config["profil"]}.'))
-    script = agent.paquet / 'scripts' / 'sauvegarde_quotidienne.py'
+    script = agent.racine / agent.scripts.replace('.', '/') / 'sauvegarde_quotidienne.py'
     if not script.is_file():
         out.append(Constat('C5', _relatif(agent.racine, script), 'script', 'la nuit de l’agent est absente.'))
     service = None
-    for fichier, objet, noeud in agent.noeuds(agent.module):
+    for fichier, objet, noeud in agent.noeuds(*agent.paquets):
         if isinstance(noeud, ast.Assign) and objet == 'KEYCHAIN_SERVICE' and isinstance(noeud.value, ast.Constant):
             service = noeud.value.value
         if isinstance(noeud, ast.Constant) and isinstance(noeud.value, str):
@@ -563,7 +603,7 @@ def c7_donnees(agent):
             else:
                 os.environ[variable] = avant
     try:
-        verifier = importlib.import_module(f'{agent.module}.scripts.verifier')
+        verifier = importlib.import_module(f'{agent.scripts}.verifier')
         with tempfile.TemporaryDirectory(prefix='conformite-donnees-') as dossier:
             dossier = Path(dossier) / 'donnees'
             dossier.mkdir(mode=0o700)
@@ -574,20 +614,21 @@ def c7_donnees(agent):
             fichier.chmod(0o644)
             ouvert = verifier.donnees(dossier)['ok']
         if not sain or ouvert:
-            out.append(Constat('C7', f'{agent.module}/scripts/verifier.py', 'donnees', 'le vérificateur doit signaler un fichier en 644.'))
+            out.append(Constat('C7', f'{agent.scripts.replace(".", "/")}/verifier.py', 'donnees', 'le vérificateur doit signaler un fichier en 644.'))
     except (ImportError, AttributeError, KeyError, TypeError) as exc:
-        out.append(Constat('C7', f'{agent.module}/scripts/verifier.py', 'donnees', f'contrôle des droits introuvable ({exc}).'))
+        out.append(Constat('C7', f'{agent.scripts.replace(".", "/")}/verifier.py', 'donnees', f'contrôle des droits introuvable ({exc}).'))
     return out
 
 
 def c8_dependances(agent):
     out = []
     locaux = {p.stem for p in (agent.racine / 'tests').glob('*.py')}
-    for dossier, permis in ((agent.module, set()), ('tests', locaux)):
-        for fichier, objet, noeud in agent.noeuds(dossier):
+    propres = {agent.module, 'socle', *(p.removesuffix('.py') for p in agent.paquets)}
+    for dossiers, permis in ((agent.paquets, set()), (('tests',), locaux)):
+        for fichier, objet, noeud in agent.noeuds(*dossiers):
             for nom in _importes(noeud):
                 tete = nom.split('.')[0]
-                if tete not in sys.stdlib_module_names and tete not in (agent.module, 'socle') and tete not in permis:
+                if tete not in sys.stdlib_module_names and tete not in propres and tete not in permis:
                     out.append(Constat('C8', fichier, objet, f'import « {nom} » hors bibliothèque standard (D108).'))
     for nom in DEPENDANCES:
         if (agent.racine / nom).exists():
@@ -638,7 +679,7 @@ def c9_tests(agent):
                 retirees.add(noeud.value)
             if (isinstance(noeud, ast.Call) and getattr(noeud.func, 'id', getattr(noeud.func, 'attr', '')) == 'ecrire_resultat'):
                 ecrit = True
-        variables = {n.value for _, _, n in agent.noeuds(agent.module)
+        variables = {n.value for _, _, n in agent.noeuds(*agent.paquets)
                      if isinstance(n, ast.Constant) and isinstance(n.value, str) and re.fullmatch(rf'{agent.NOM}_[A-Z0-9_]+', n.value)}
         variables.add(f'{agent.NOM}_HOME')
         for variable in sorted(variables - retirees):
@@ -651,7 +692,7 @@ def c9_tests(agent):
     if not suite.is_file() or not any(isinstance(n, ast.Call) and getattr(n.func, 'id', getattr(n.func, 'attr', '')) == 'cas'
                                       for n in ast.walk(agent.arbre(suite))):
         out.append(Constat('C9', 'tests/test_conformite.py', 'cas', 'la suite de conformité du socle (conformite.cas) y est lancée.'))
-    for fichier, objet, noeud in agent.noeuds(agent.module, 'tests'):
+    for fichier, objet, noeud in agent.noeuds(*agent.paquets, 'tests'):
         if not isinstance(noeud, ast.Call):
             continue
         nom = getattr(noeud.func, 'attr', getattr(noeud.func, 'id', ''))
@@ -662,7 +703,7 @@ def c9_tests(agent):
             out.append(Constat('C9', fichier, objet, f'os.{nom} passe par un shell.'))
         if any(k.arg == 'shell' and isinstance(k.value, ast.Constant) and k.value.value for k in noeud.keywords):
             out.append(Constat('C9', fichier, objet, 'shell=True : un programme par son chemin complet, jamais par un shell.'))
-    for programme in sorted((agent.racine / 'bin').glob('*')):
+    for programme in sorted(agent.bin.glob('*')):
         texte = programme.read_text(encoding='utf-8', errors='replace')
         relatif = _relatif(agent.racine, programme)
         if not texte.startswith('#!/'):
@@ -677,7 +718,7 @@ def c10_versionne(agent):
     out = []
     regle = agent.declaration().regles.regle_autrui
     fichiers = {}
-    for fichier, objet, noeud in agent.noeuds(agent.module):
+    for fichier, objet, noeud in agent.noeuds(*agent.paquets):
         fichiers.setdefault(fichier, []).append((objet, noeud))
     for fichier, noeuds in fichiers.items():
         alias = {}
@@ -790,7 +831,7 @@ def c11_portable(agent):
             if motif.search(texte):
                 out.append(Constat('C11', fichier, objet, f'contient « {mot} », un mot interdit (conformite.toml ou écosystème).'))
 
-    for chemin in agent.fichiers(agent.module):
+    for chemin in agent.fichiers(*agent.paquets):
         arbre, fichier = agent.arbre(chemin), _relatif(agent.racine, chemin)
         docs = _docstrings(arbre)
         for objet, noeud in _objets(arbre):
@@ -801,7 +842,7 @@ def c11_portable(agent):
                 out.append(Constat('C11', fichier, objet, raison + '.'))
             for texte in _textes_du_noeud(noeud):
                 juger(fichier, objet, texte)
-    for relatif, ligne in _textes_bin(agent.racine):
+    for relatif, ligne in _textes_bin(agent):
         if PERSONNEL_BIN.search(ligne):
             out.append(Constat('C11', relatif, 'programme', 'chemin personnel écrit en dur (~, /Users, $HOME).'))
         juger(relatif, 'programme', ligne)
@@ -836,7 +877,11 @@ def bilan(racine, module):
 
     La suite juge toujours sur des données fictives (spec 017) : sans <AGENT>_HOME, un dossier temporaire le tient le temps du
     jugement, pour qu'un agent non installé puisse se déclarer."""
-    variable = f'{module.upper()}_HOME'
+    try:
+        prefixe = (charger(racine)['forme'] or {}).get('prefixe') or module.upper()
+    except ConformiteInvalide:
+        prefixe = module.upper()  # _bilan refuse ensuite, avec le message de charger
+    variable = f'{prefixe}_HOME'
     if os.environ.get(variable):
         return _bilan(racine, module)
     with tempfile.TemporaryDirectory(prefix=f'conformite-{module}-') as temp:
