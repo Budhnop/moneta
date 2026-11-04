@@ -7,7 +7,12 @@ lines the window would show, never someone else's text: only plain str values pa
 is refused). JournalIndisponible carries the refusal; the tools turn it into their ToolError. Without a declared agent nothing is written.
 
 One journal for every agent of an ecosystem (spec 013, D110; spec 017, D112): the ecosystem's root for an enrolled agent on
-its real data (the signal's rule), else inside its data folder. Each line names its agent; a line without one is smith's.
+its real data (the signal's rule), else inside its data folder. Each line names its agent; a line without one, from before
+D110, reads as « inconnu » (revue 017, P07 : the socle names no agent).
+
+A write cut short leaves a last line without its end. The next append first closes it with a « coupure » line (revue 017,
+S08): the cut line never merges with the next one, and the daily cap tolerates a broken line that a coupure follows (the
+write it announced never happened: no journal, no write).
 """
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
@@ -31,9 +36,9 @@ DETAIL_MAX = 200
 INDISPONIBLE = "Journal des écritures indisponible; rien n'est enregistré."
 AVERTISSEMENT = "Écrit, mais le résultat n'a pas pu être ajouté au journal."
 IDENTIFIANT = re.compile(r'^[0-9a-f]{8}$')
-# D110 : avant le journal commun, seul le premier agent de Claude OS écrivait ce journal; ses lignes sans « agent » restent les
-# siennes. Seule exception de nom dans le code du socle (spec 017, test_recherche) : un format d'archive, pas une liste.
-AGENT_SANS_NOM = 'smith'
+# D110 : les lignes d'avant le journal commun n'ont pas d'« agent ». Le socle ne nomme aucun agent (revue 017, P07).
+AGENT_SANS_NOM = 'inconnu'
+COUPURE = 'coupure'
 
 
 class JournalIndisponible(Exception):
@@ -59,9 +64,14 @@ def _ajouter(ligne, maintenant):
     private_folder(folder)
     held = os.open(folder, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     try:
-        fd = os.open(f'{maintenant:%Y-%m}.jsonl', os.O_WRONLY | os.O_APPEND | os.O_CREAT | os.O_NOFOLLOW, 0o600, dir_fd=held)
+        fd = os.open(f'{maintenant:%Y-%m}.jsonl', os.O_RDWR | os.O_APPEND | os.O_CREAT | os.O_NOFOLLOW, 0o600, dir_fd=held)
         try:
-            os.write(fd, (json.dumps(ligne, ensure_ascii=False) + '\n').encode('utf-8'))
+            texte = (json.dumps(ligne, ensure_ascii=False) + '\n').encode('utf-8')
+            taille = os.fstat(fd).st_size
+            if taille and os.pread(fd, 1, taille - 1) != b'\n':
+                coupure = {'type': COUPURE, 'heure': maintenant.strftime('%Y-%m-%dT%H:%M:%S')}
+                texte = b'\n' + json.dumps(coupure).encode('utf-8') + b'\n' + texte
+            os.write(fd, texte)
             os.fsync(fd)
         finally:
             os.close(fd)
@@ -127,17 +137,30 @@ def _lire(mois, strict=False):
     bruts = texte.splitlines()
     lignes = []
     for numero, brut in enumerate(bruts, 1):
+        if not brut.strip():
+            continue
         try:
             ligne = json.loads(brut)
         except ValueError:
-            if strict and not (numero == len(bruts) and not texte.endswith('\n')):
+            coupee = (numero == len(bruts) and not texte.endswith('\n')) or _est_coupure(bruts[numero] if numero < len(bruts) else '')
+            if strict and not coupee:
                 raise
             continue  # a line cut by an interrupted write
+        if isinstance(ligne, dict) and ligne.get('type') == COUPURE and set(ligne) == {'type', 'heure'}:
+            continue
         if isinstance(ligne, dict) and ligne.get('type') in ('intention', 'resultat') and _texte(ligne.get('id')):
             lignes.append(ligne)
         elif strict:
             raise ValueError('ligne inconnue au journal')
     return lignes
+
+
+def _est_coupure(brut):
+    try:
+        ligne = json.loads(brut)
+    except ValueError:
+        return False
+    return isinstance(ligne, dict) and ligne.get('type') == COUPURE and set(ligne) == {'type', 'heure'}
 
 
 def du_jour(jour, strict=False):

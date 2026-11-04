@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import tomllib
+import unicodedata
 import unittest
 
 from socle import declaration, empreinte, installation
@@ -348,6 +349,12 @@ def c1_base(agent):
     for base in d.bases():
         if not Path(base).resolve().is_relative_to(donnees):
             out.append(Constat('C1', 'declaration', 'bases', f'base {base} hors de dossier_donnees() ({donnees}).'))
+    if inst is not None:
+        try:
+            installation.ecosysteme(inst.racine)
+        except OSError as exc:
+            # Revue 017, S05 : un écosystème illisible ne fait jamais sauter le contrôle des voisins sans le dire.
+            out.append(Constat('C1', 'ecosysteme.toml', 'ecosysteme', f'écosystème illisible, contrôle des voisins impossible : {exc}'))
     autres = agent.autres()
     if not autres:
         return _uniques(out)
@@ -763,8 +770,21 @@ def c10_versionne(agent):
     return _uniques(out)
 
 
-# C11 « portable » (spec 017, R6) : un chemin personnel écrit en dur, dans une chaîne ou dans bin/.
-PERSONNEL = re.compile(r'^(?:/Users/|/home/|~(?:/|[a-z]|$))')
+# C11 « portable » (spec 017, R6) : un chemin personnel écrit en dur, dans une chaîne ou dans bin/. Cherché partout dans la
+# chaîne, pas seulement au début (revue 017, P03); /Users/Shared n'est le dossier de personne.
+PERSONNEL = re.compile(r'(?:/Users/(?!Shared(?:/|$))|/home/|\$HOME\b|\$\{HOME\}|(?:^|[\s"\'=:(])~(?:[a-z][\w.-]*)?/)')
+VARIABLES_PERSONNELLES = frozenset({'HOME', 'USER', 'LOGNAME', 'USERPROFILE'})
+INVISIBLES = re.compile('[\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180b-\u180f\u200b-\u200f\u202a-\u202e\u2060-\u206f'
+                        '\u3164\ufe00-\ufe0f\ufeff\uffa0\U000e0000-\U000e0fff]')
+CASSE = re.compile(r'(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])')
+
+
+def _normal(texte):
+    """Ce qu'un humain lit : pleine chasse et formes compatibles ramenées (NFKC), invisibles retirés, mots collés en CamelCase
+    séparés (« SmithClient » se lit « Smith Client »; revue 017, P03). Un nom coupé exprès (« Sm » + « ith ») reste hors de portée :
+    la conformité empêche l'oubli, pas la fraude."""
+    texte = INVISIBLES.sub('', unicodedata.normalize('NFKC', texte))
+    return CASSE.sub(' ', texte)
 PERSONNEL_BIN = re.compile(r'(?:^|[\s"\'=:(])(?:~(?:/|[a-z]|(?=[\s"\']|$))|/Users/|/home/|\$HOME\b|\$\{HOME\})')
 
 
@@ -800,12 +820,27 @@ def _textes_du_noeud(noeud):
     return []
 
 
-def _personnel(noeud):
+def _alias_de_path(arbre):
+    """Les noms sous lesquels ce fichier importe Path ou PosixPath (from pathlib import Path as P; revue 017, P03)."""
+    noms = {'Path', 'PosixPath'}
+    for n in ast.walk(arbre):
+        if isinstance(n, ast.ImportFrom) and n.module == 'pathlib':
+            noms |= {a.asname or a.name for a in n.names if a.name in ('Path', 'PosixPath')}
+    return noms
+
+
+def _personnel(noeud, alias=frozenset({'Path', 'PosixPath'})):
     """Pourquoi ce noeud vise un dossier personnel écrit en dur, sinon None."""
-    if isinstance(noeud, ast.Constant) and isinstance(noeud.value, str) and PERSONNEL.match(noeud.value):
-        return f'chemin personnel écrit en dur « {noeud.value[:60]} »'
-    if isinstance(noeud, ast.Call) and isinstance(noeud.func, ast.Attribute):
-        if noeud.func.attr == 'home' and isinstance(noeud.func.value, ast.Name) and noeud.func.value.id in ('Path', 'PosixPath'):
+    if isinstance(noeud, ast.Constant) and isinstance(noeud.value, str):
+        texte = _normal(noeud.value)
+        if PERSONNEL.search(texte):
+            return f'chemin personnel écrit en dur « {noeud.value[:60]} »'
+        if texte.strip() in VARIABLES_PERSONNELLES:
+            return f'variable « {texte.strip()} » : le dossier réel vient de installation.toml, jamais du compte'
+    if isinstance(noeud, ast.Call) and isinstance(noeud.func, ast.Attribute) and noeud.func.attr == 'home':
+        cible = noeud.func.value
+        if noeud.func.attr == 'home' and ((isinstance(cible, ast.Name) and cible.id in alias)
+                                          or (isinstance(cible, ast.Attribute) and cible.attr in ('Path', 'PosixPath'))):
             return 'Path.home() : le dossier réel vient de installation.toml, jamais du dossier personnel'
     return None
 
@@ -824,6 +859,7 @@ def c11_portable(agent):
     out = []
 
     def juger(fichier, objet, texte):
+        texte = _normal(texte)
         for nom, motif in autres:
             if motif.search(texte):
                 out.append(Constat('C11', fichier, objet, f'nomme l’agent « {nom} » : un agent portable ne connaît pas les autres.'))
@@ -833,17 +869,17 @@ def c11_portable(agent):
 
     for chemin in agent.fichiers(*agent.paquets):
         arbre, fichier = agent.arbre(chemin), _relatif(agent.racine, chemin)
-        docs = _docstrings(arbre)
+        docs, alias = _docstrings(arbre), _alias_de_path(arbre)
         for objet, noeud in _objets(arbre):
             if id(noeud) in docs:
                 continue
-            raison = _personnel(noeud)
+            raison = _personnel(noeud, alias)
             if raison:
                 out.append(Constat('C11', fichier, objet, raison + '.'))
             for texte in _textes_du_noeud(noeud):
                 juger(fichier, objet, texte)
     for relatif, ligne in _textes_bin(agent):
-        if PERSONNEL_BIN.search(ligne):
+        if PERSONNEL_BIN.search(_normal(ligne)):
             out.append(Constat('C11', relatif, 'programme', 'chemin personnel écrit en dur (~, /Users, $HOME).'))
         juger(relatif, 'programme', ligne)
     return _uniques(out)
