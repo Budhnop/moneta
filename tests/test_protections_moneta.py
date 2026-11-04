@@ -135,6 +135,9 @@ class TestSignalCommun(Protections):
         self.window(self.ok('finances_lot_preparer'), ['texte_autrui_recent'])
 
     def test_un_signal_de_moneta_est_sain_pour_le_socle_de_smith(self):
+        # Smith 2.0 en fictif ne connaît que lui-même, sauf un ecosysteme.toml à côté de ses données d'essai (socle 2.0,
+        # ecrivain_connu) : le banc d'essai le pose, comme le test précédent. Vu à la bascule (spec 017 de Smith, T047).
+        write_private(self.folder, 'ecosysteme.toml', b'agents = ["moneta", "smith", "thot", "atlas"]\n')
         signal_texte.inscrire()
         self.assertIn('"par": "moneta"', self.signal_fichier.read_text(encoding='utf-8'))
         self.assertEqual(smith('from socle import signal_texte\nprint(signal_texte.etat())', self.home, self.signal_fichier),
