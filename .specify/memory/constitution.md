@@ -54,15 +54,17 @@ avec un document de ce dépôt, cette constitution prévaut; les décisions vive
 
 ### IV. Données au repos sur le Mac
 
-- Les données vivent dans `~/_PersonalAgents/donnees/moneta/`, hors Git et hors du code,
+- Les données vivent dans le dossier `moneta/` de la racine fixée à l'installation
+  (`installation.toml`, D112), chez Ugo `~/_PersonalAgents/donnees/moneta/`, hors Git et hors du code,
   dossiers en 700 et fichiers en 600 (seul le lecteur `apps/moneta-releve` est en 700). Moneta
   est seul à ouvrir `finances.db` (EF-008).
 - Elles ne sortent du Mac que par les trois sorties directes de D109 : le dépôt d'une facture,
   son classement à l'enregistrement, et l'image chiffrée de la nuit (Drive et PRO-HD1). Tout le
   reste, dont la copie d'un rapport vers Drive, passe par `WR_SAVE_DRIVE_FICHIER` de Smith et sa
   fenêtre (EF-013, EF-014). Les résultats consultés transitent vers Anthropic, ce qu'Ugo accepte.
-- Le journal des écritures est commun à Smith et Moneta (`donnees/journal-ecritures/`, D110);
-  chaque ligne nomme son agent.
+- Le journal des écritures et le signal du texte d'autrui sont communs aux agents inscrits à
+  l'écosystème (`donnees/journal-ecritures/`, `donnees/signaux/`, D110, D112); chaque ligne nomme son
+  agent. Moneta est inscrit chez Ugo et n'est pas portable (D109).
 
 ### V. Minimisation
 
@@ -88,8 +90,8 @@ avec un document de ce dépôt, cette constitution prévaut; les décisions vive
 ### VII. Tests fictifs, séparés et verts
 
 - Les tests tournent dans un `MONETA_HOME` temporaire sur des données fictives; jamais les vraies
-  bases, jamais un modèle réel, jamais un nom ou une donnée réelle dans le dépôt. Un dossier sous
-  `~/_PersonalAgents` n'est jamais suivi comme dossier de test.
+  bases, jamais un modèle réel, jamais un nom ou une donnée réelle dans le dépôt. Un dossier marqué
+  réel (`.socle-reel`) n'est jamais suivi comme dossier de test.
 - Code et tests ensemble; un test de bogue échoue sur l'ancien code; `bin/moneta-tests` au vert
   avant de passer à la suite. Les jeux de cas figés (`tests/references/`) ne se régénèrent
   jamais sans décision écrite.
@@ -114,7 +116,7 @@ avec un document de ce dépôt, cette constitution prévaut; les décisions vive
   écriture (D084). Atlas lit les finances en tout temps; Aurèle les lit seulement à la demande
   d'Ugo dans la conversation (D087).
 - Un agent lit les données de Moneta seulement par une lecture déclarée (outil MCP ou interface
-  en lecture seule), jamais en SQL (D107).
+  en lecture seule), jamais en SQL (D107), et seulement s'il est inscrit au même écosystème (D112).
 - Interfaces : Claude Desktop (connecteur Moneta) et l'app Smith sur le Mac, dans son propre
   processus, routé par une table en code (D109); jamais par Internet sans nouvelle décision.
 
@@ -141,5 +143,10 @@ avec un document de ce dépôt, cette constitution prévaut; les décisions vive
 - **1.0.0** (2026-11-02) : première version, tirée de la constitution de Smith 2.3.1 pour les
   données de Moneta (spec 013, T068, EF-002), alignée sur Smith 2.4.0 et D110. Accord d'Ugo le
   2026-11-02 (T069). En vigueur à la mise en service de la spec 013.
+- **1.1.0** (2026-11-04, D112, spec 017 de Smith) : MINEUR, aligné sur Smith 2.5.0. Principe IV : les
+  données sous la racine fixée à l'installation, le journal et le signal communs aux agents inscrits;
+  principe VII : aucun essai dans un dossier marqué réel; périmètre : lecture déclarée par un agent
+  inscrit seulement. Moneta reste non portable (D109). Aucun principe redéfini. Accord d'Ugo le
+  2026-11-04 (T042). En vigueur à la bascule de la spec 017.
 
-**Version** : 1.0.0 | **Ratifiée** : 2026-11-02 | **Dernière modification** : 2026-11-02
+**Version** : 1.1.0 | **Ratifiée** : 2026-11-02 | **Dernière modification** : 2026-11-04
