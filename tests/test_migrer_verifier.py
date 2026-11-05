@@ -1,9 +1,10 @@
 """bin/moneta-migrer et bin/moneta-verifier --json (spec 013, contrat verificateur-agents) sur des données fictives.
 
-Le vérificateur rend {"version": 1, "ok", "controles": [{"ok", "texte", "corriger"}]}, textes fermés de 200 caractères au plus;
+Le vérificateur rend {"version": 2, "ok", "controles": [{"ok", "texte", "corriger", "attention"}]}, textes fermés de 200 caractères au plus;
 le migrateur passe par socle.migrations, sauvegarde vérifiée avant toute application.
 """
 from contextlib import closing
+from datetime import datetime
 import json
 import os
 from pathlib import Path
@@ -40,6 +41,15 @@ class TestMigrerVerifier(unittest.TestCase):
         LECTEUR.parent.mkdir(mode=0o700)
         LECTEUR.write_text('#!/bin/sh\nexit 0\n')
         LECTEUR.chmod(0o700)
+        # Un journal de nuit sain, daté d'aujourd'hui : les trois copies vérifiées (spec 018, T024) ne sont pas ce que ces tests regardent.
+        maintenant = datetime.now()
+        image = f'moneta-{maintenant:%Y-%m-%d}_211500.dmg'
+        (HOME / 'private').mkdir(mode=0o700)
+        journal = HOME / 'private' / 'sauvegarde-quotidienne.log'
+        journal.write_text(''.join(f'{maintenant:%Y-%m-%d %H:%M} OK {etape} : {detail}\n' for etape, detail in (
+            ('local', f'finances_{maintenant:%Y-%m-%d}.db'), ('hors Mac', f'quotidiennes/{image} (1 fichiers vérifiés, 0 pièce(s))'),
+            ('disque', f'quotidiennes/{image} (1 fichiers vérifiés)'))), encoding='utf-8')
+        journal.chmod(0o600)
 
     def base(self):
         return HOME / 'database' / 'finances.db'
@@ -47,7 +57,7 @@ class TestMigrerVerifier(unittest.TestCase):
     def test_parcours(self):
         # Base absente : le vérificateur le dit, le migrateur en statut ne crée rien.
         code, valeur = verdict()
-        self.assertEqual((code, valeur['version'], valeur['ok']), (1, 1, False))
+        self.assertEqual((code, valeur['version'], valeur['ok']), (1, 2, False))
         self.assertIn('Base finances.db absente', [c['texte'] for c in valeur['controles'] if not c['ok']])
         statut = lancer('moneta-migrer')
         self.assertEqual(statut.returncode, 0)
@@ -62,7 +72,7 @@ class TestMigrerVerifier(unittest.TestCase):
         code, valeur = verdict()
         self.assertEqual((code, valeur['ok']), (0, True), valeur)
         for controle in valeur['controles']:
-            self.assertEqual(set(controle), {'ok', 'texte', 'corriger'})
+            self.assertEqual(set(controle), {'ok', 'texte', 'corriger', 'attention'})
             self.assertLessEqual(len(controle['texte']), 200)
             self.assertLessEqual(len(controle['corriger']), 200)
 
@@ -86,7 +96,7 @@ class TestMigrerVerifier(unittest.TestCase):
             con.execute('DELETE FROM schema_migrations WHERE version=8')
         code, valeur = verdict()
         self.assertEqual(code, 1)
-        self.assertIn({'ok': False, 'texte': 'Migrations en attente', 'corriger': 'bin/moneta-migrer --appliquer'},
+        self.assertIn({'ok': False, 'texte': 'Migrations en attente', 'corriger': 'bin/moneta-migrer --appliquer', 'attention': False},
                       valeur['controles'])
 
     def test_base_illisible(self):
@@ -131,7 +141,7 @@ class TestMigrerVerifier(unittest.TestCase):
             INBOX.mkdir(exist_ok=True)
         code, valeur = verdict()
         self.assertEqual(code, 0)
-        self.assertIn({'ok': True, 'texte': texte, 'corriger': ''}, valeur['controles'])
+        self.assertIn({'ok': True, 'texte': texte, 'corriger': '', 'attention': False}, valeur['controles'])
 
     def test_lecteur_de_releves(self):
         # Spec 013, T066 : le contrôle du lecteur, fait par smith-verifier jusqu'à T051, passe à moneta-verifier. Le lecteur
@@ -139,11 +149,11 @@ class TestMigrerVerifier(unittest.TestCase):
         # il sort des modes privés.
         lancer('moneta-migrer', '--appliquer')
         texte = 'Lecteur de relevés PDF présent (moneta-releve)'
-        self.assertIn({'ok': True, 'texte': texte, 'corriger': ''}, verdict()[1]['controles'])
+        self.assertIn({'ok': True, 'texte': texte, 'corriger': '', 'attention': False}, verdict()[1]['controles'])
         LECTEUR.unlink()
         code, valeur = verdict()
         self.assertEqual(code, 1)
-        self.assertEqual(valeur['controles'][-1]['texte'], texte)
+        self.assertIn(texte, [c['texte'] for c in valeur['controles'] if not c['ok']])
         self.assertEqual([c['corriger'] for c in valeur['controles'] if not c['ok']],
                          ['lancer bin/moneta-construire-releve (sans lui, aucun relevé PDF ne se lit)'])
         for mode, mauvais in ((0o600, ['Données de Moneta : mode, lien ou propriétaire', texte]),

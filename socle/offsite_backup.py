@@ -5,7 +5,8 @@ but a Mac and the passphrase: double-click the .dmg. The agent gives the functio
 own (keychain service, kinds, volume); this engine reads no base.
 
 A second destination (D079): each verified image is copied onto an external disk and verified there against the manifest
-inside it (copy_to_disk).
+inside it (copy_to_disk). The same copy serves a folder synchronised by Drive (spec 018 of Smith): check_cloud guards it as
+check_disk guards the disk, and copy_to_disk copies and verifies into either one.
 """
 from contextlib import contextmanager
 from datetime import datetime
@@ -77,6 +78,29 @@ def check_disk(disk, data_home, synced, proprietaire="de l'agent"):
     if same_device(disk, data_home):
         raise ValueError(f"Le disque {disk} est le même disque que le Mac : refusé.")
     return disk
+
+
+def check_cloud(folder, data_home, proprietaire="de l'agent"):
+    """The folder of the Mac's Drive (the twin of check_disk), or None when it is absent (Drive not connected):
+    it is never created. A link (the folder or a parent under ~/Library/CloudStorage), a file, the data folder or a folder
+    outside ~/Library/CloudStorage is refused. Returns the resolved path."""
+    folder = Path(os.path.abspath(Path(folder).expanduser()))
+    cloud = Path(os.path.abspath(Path.home() / "Library/CloudStorage"))
+    if folder == cloud or not folder.is_relative_to(cloud):
+        # Before the existence check: a misset variable is refused, never taken for a Drive not connected.
+        raise ValueError(f"La destination Drive {folder} est hors de ~/Library/CloudStorage : refusé.")
+    if folder.is_symlink() or any(p.is_symlink() for p in folder.parents if p.is_relative_to(cloud)):
+        raise ValueError(f"La destination Drive {folder} est un lien (ou passe par un lien) : refusé.")
+    if not folder.exists():
+        return None
+    if not folder.is_dir():
+        raise ValueError(f"La destination Drive {folder} n'est pas un dossier : refusé.")
+    folder = folder.resolve()
+    if folder.is_relative_to(Path(data_home).resolve()):
+        raise ValueError(f"La destination Drive {folder} est dans le dossier de données {proprietaire} : refusé.")
+    if folder == cloud.resolve() or not folder.is_relative_to(cloud.resolve()):
+        raise ValueError(f"La destination Drive {folder} est hors de ~/Library/CloudStorage : refusé.")
+    return folder
 
 
 def pieces(sources):
@@ -161,28 +185,37 @@ def publish(partial, final):
 
 
 def copy_to_disk(image, folder, passphrase, hdiutil="/usr/bin/hdiutil"):
-    """Copies the image into folder (one of the disk's kind folders) and verifies the copy: same bytes, then mounted and every
-    file compared. An identical image already there is verified again; a different one is never overwritten
-    (FileExistsError). A failure leaves no image. Returns the files checked."""
+    """Copies the image into folder (one of the disk's or Drive's kind folders) and verifies the copy: same bytes, then mounted
+    and every file compared. An identical image already there is verified again; a different one is never overwritten
+    (FileExistsError). A failure leaves no image and no .partiel- leftover. A refusal of the file system (full disk, no
+    permission...) is raised as OSError whose message gives the cause: errno, its text and the image's name. Returns the
+    files checked."""
     image, folder = Path(image), Path(folder)
     if folder.is_symlink():
         raise ValueError(f"« {folder.name} » est un lien sur le disque : refusé.")
-    folder.mkdir(exist_ok=True, mode=0o700)
-    target = folder / image.name
-    source = digest(image)
-    if target.exists() or target.is_symlink():
-        if not stat.S_ISREG(target.lstat().st_mode) or digest(target) != source:
-            raise FileExistsError(f"déjà présente et différente, rien d'écrasé : {image.name}")
-        return verify_image(target, passphrase, hdiutil)
-    partial = private_copy(image, folder)
     try:
-        if digest(partial) != source:
-            raise RuntimeError(f"Vérification échouée : copie différente de {image.name}")
-        files = verify_image(partial, passphrase, hdiutil)
-        publish(partial, target)
-    finally:
-        partial.unlink(missing_ok=True)
-    return files
+        folder.mkdir(exist_ok=True, mode=0o700)
+        target = folder / image.name
+        source = digest(image)
+        if target.exists() or target.is_symlink():
+            if not stat.S_ISREG(target.lstat().st_mode) or digest(target) != source:
+                raise FileExistsError(f"déjà présente et différente, rien d'écrasé : {image.name}")
+            return verify_image(target, passphrase, hdiutil)
+        partial = private_copy(image, folder)
+        try:
+            if digest(partial) != source:
+                raise RuntimeError(f"Vérification échouée : copie différente de {image.name}")
+            files = verify_image(partial, passphrase, hdiutil)
+            publish(partial, target)
+        finally:
+            partial.unlink(missing_ok=True)
+        return files
+    except FileExistsError:
+        raise
+    except OSError as erreur:
+        cause = OSError(f"opération refusée par la destination (errno {erreur.errno}, {erreur.strerror or erreur}) : {image.name}")
+        cause.errno = erreur.errno
+        raise cause from None
 
 
 def run(command, passphrase, message):

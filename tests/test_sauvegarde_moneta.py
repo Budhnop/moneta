@@ -306,6 +306,22 @@ class TestDisque(Base):
         self.assertIn('ERREUR hors Mac : MONETA_SAUVEGARDE_DESTINATION absente', self.log())
 
 
+class TestErreurDisqueLisible(Base):
+    """Spec 018, T029 : un refus du système de fichiers du disque (Errno 45...) est écrit avec sa cause, pas seulement « ERREUR disque »."""
+
+    def test_oserror_du_disque_porte_sa_cause_au_journal(self):
+        nom = TestRetention.image(self, date(2026, 10, 31))
+        refus = OSError(45, 'Operation not supported')
+        with patch('socle.offsite_backup.private_copy', side_effect=refus), \
+                patch.object(self.nuit, 'keychain_passphrase', return_value=PASSPHRASE), \
+                patch.object(self.nuit, 'offsite'), patch.object(self.nuit, 'retention'):
+            self.assertEqual(self.nuit.main(), 1)
+        ligne = next(l for l in self.log().splitlines() if 'ERREUR disque' in l)
+        self.assertIn('opération refusée par la destination (errno 45, Operation not supported)', ligne)
+        self.assertIn(nom, ligne)
+        self.assertEqual(list(self.disk.rglob('*.dmg')) + list(self.disk.rglob('.partiel-*')), [])
+
+
 def smith_nuit(smith_home, drive, destination, disque):
     """La nuit de Smith, lancée par son propre code (MONETA_TESTS_SMITH) sur ses données fictives, phrase de passe fictive."""
     code = ('import sys\nfrom unittest.mock import patch\nfrom scripts import sauvegarde_quotidienne as d\n'

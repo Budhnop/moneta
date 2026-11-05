@@ -38,8 +38,10 @@ REGLES = {
     'C11': 'portable',
 }
 PROFILS = ('lecture', 'lot', 'versionne')
-# Les destinations de nuit permises par profil (le profil versionné, à l'étape 5 : jamais Drive).
-DESTINATIONS = {'lecture': ('DESTINATION', 'DISQUE'), 'lot': ('DESTINATION', 'DISQUE'), 'versionne': ('DISQUE',)}
+# Les destinations de nuit permises par profil. Le profil versionné peut envoyer à Drive l'image chiffrée seulement (D115 de
+# Smith, spec 018) : la variable DESTINATION n'ouvre que cela, et C3 refuse toujours une sortie « drive » listée à ce profil.
+DESTINATIONS = {'lecture': ('DESTINATION', 'DISQUE'), 'lot': ('DESTINATION', 'DISQUE'),
+                'versionne': ('DESTINATION', 'DISQUE')}  # l'image chiffrée seulement (D115 de Smith, spec 018)
 SORTIES = ('drive',)  # une sortie directe du Mac, chacune listée avec sa décision
 RESEAU = ('socket', 'ssl', 'http', 'urllib', 'smtplib', 'ftplib', 'poplib', 'imaplib', 'telnetlib', 'xmlrpc', 'socketserver',
           'webbrowser', 'asyncio')
