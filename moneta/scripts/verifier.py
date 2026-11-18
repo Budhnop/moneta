@@ -37,10 +37,13 @@ ETAPE_DISQUE = "disque"
 ETAPE_DRIVE = "hors Mac"
 
 
-def controle(ok, texte, corriger="", attention=False):
+def controle(ok, texte, corriger="", attention=False, id=None):
     """Un contrôle du contrat v2 : attention (⚠️) suppose ok, et garde son corriger."""
-    return {"ok": ok, "texte": texte[:200], "corriger": "" if ok and not attention else corriger[:200],
-            "attention": attention and ok}
+    c = {"ok": ok, "texte": texte[:200], "corriger": "" if ok and not attention else corriger[:200],
+         "attention": attention and ok}
+    if id is not None:  # revue de la reprise 016, R01 : la clé stable du contrôle, que smith-verifier préfixe de l'agent
+        c["id"] = id
+    return c
 
 
 def donnees(racine):
@@ -48,7 +51,7 @@ def donnees(racine):
     programme = os.path.join(racine, "apps", "moneta-releve")
     try:
         if not racine.exists():
-            return controle(True, "Données de Moneta : dossier absent")
+            return controle(True, "Données de Moneta : dossier absent", id="donnees")
         mauvais = False
         for dossier, sous, fichiers in os.walk(racine, followlinks=False):
             chemins = [os.path.join(dossier, f) for f in fichiers]
@@ -63,13 +66,13 @@ def donnees(racine):
     if mauvais:
         return controle(False, "Données de Moneta : mode, lien ou propriétaire",
                         f"find {racine} -type d -exec chmod 700 {{}} + ; find {racine} -type f -exec chmod 600 {{}} + "
-                        "; retirer les liens; puis bin/moneta-construire-releve")
-    return controle(True, "Données de Moneta : 700 et 600, aucun lien")
+                        "; retirer les liens; puis bin/moneta-construire-releve", id="donnees")
+    return controle(True, "Données de Moneta : 700 et 600, aucun lien", id="donnees")
 
 
 def base(db):
     if not db.is_file():
-        return [controle(False, "Base finances.db absente", f"déménager Finances de Smith, sinon {MIGRER}")]
+        return [controle(False, "Base finances.db absente", f"déménager Finances de Smith, sinon {MIGRER}", id="base")]
     try:
         with closing(sqlite3.connect(f"file:{db}?mode=ro", uri=True)) as con:
             con.execute("PRAGMA query_only=ON")
@@ -77,17 +80,17 @@ def base(db):
                 raise sqlite3.DatabaseError
         todo, drift = pending(db, MIGRATIONS), changed(db, MIGRATIONS)
     except (OSError, sqlite3.Error):
-        return [controle(False, "Base finances.db illisible", "restaurer la dernière sauvegarde vérifiée (backups/database/moneta)")]
-    return [controle(True, "Base finances.db lisible"),
-            controle(not todo, "Migrations à jour" if not todo else "Migrations en attente", MIGRER),
+        return [controle(False, "Base finances.db illisible", "restaurer la dernière sauvegarde vérifiée (backups/database/moneta)", id="base")]
+    return [controle(True, "Base finances.db lisible", id="base"),
+            controle(not todo, "Migrations à jour" if not todo else "Migrations en attente", MIGRER, id="migrations"),
             controle(not drift, "Migrations inchangées" if not drift else "Migration modifiée depuis son application",
-                     "revoir moneta/migrations/finances avant toute écriture")]
+                     "revoir moneta/migrations/finances avant toute écriture", id="migrations_inchangees")]
 
 
 def factures():
     """Le dossier où Ugo dépose les factures, comme smith-verifier le contrôlait avant la spec 013 : son nom seulement."""
     return controle(inbox_present(), f"Dossier des factures « {INBOX} » dans Google Drive",
-                    "le créer dans Google Drive (depuis le Mac ou le téléphone)")
+                    "le créer dans Google Drive (depuis le Mac ou le téléphone)", id="factures")
 
 
 def lecteur():
@@ -95,7 +98,7 @@ def lecteur():
     chemin = releve()
     present = chemin.is_file() and not chemin.is_symlink() and os.access(chemin, os.X_OK)
     return controle(present, "Lecteur de relevés PDF présent (moneta-releve)",
-                    "lancer bin/moneta-construire-releve (sans lui, aucun relevé PDF ne se lit)")
+                    "lancer bin/moneta-construire-releve (sans lui, aucun relevé PDF ne se lit)", id="lecteur")
 
 
 def journal_de_nuit(racine):
@@ -124,7 +127,7 @@ def sauvegardes(lignes, aujourdhui=None):
                 ("disque", fraicheur.derniere(lignes, ETAPE_DISQUE, IMAGE)),
                 ("drive", fraicheur.derniere(lignes, ETAPE_DRIVE, IMAGE)))
     jugements = [fraicheur.juger("Moneta", destination, jour, aujourdhui, LABEL) for destination, jour in trouvees]
-    return [controle(j["ok"], j["texte"], j["corriger"], j["attention"]) for j in jugements]
+    return [controle(j["ok"], j["texte"], j["corriger"], j["attention"], id=f"copie.{d}") for (d, _), j in zip(trouvees, jugements)]
 
 
 def verifier():

@@ -72,7 +72,7 @@ class TestMigrerVerifier(unittest.TestCase):
         code, valeur = verdict()
         self.assertEqual((code, valeur['ok']), (0, True), valeur)
         for controle in valeur['controles']:
-            self.assertEqual(set(controle), {'ok', 'texte', 'corriger', 'attention'})
+            self.assertEqual(set(controle), {'ok', 'texte', 'corriger', 'attention', 'id'})
             self.assertLessEqual(len(controle['texte']), 200)
             self.assertLessEqual(len(controle['corriger']), 200)
 
@@ -96,7 +96,7 @@ class TestMigrerVerifier(unittest.TestCase):
             con.execute('DELETE FROM schema_migrations WHERE version=8')
         code, valeur = verdict()
         self.assertEqual(code, 1)
-        self.assertIn({'ok': False, 'texte': 'Migrations en attente', 'corriger': 'bin/moneta-migrer --appliquer', 'attention': False},
+        self.assertIn({'ok': False, 'texte': 'Migrations en attente', 'corriger': 'bin/moneta-migrer --appliquer', 'attention': False, 'id': 'migrations'},
                       valeur['controles'])
 
     def test_base_illisible(self):
@@ -141,7 +141,7 @@ class TestMigrerVerifier(unittest.TestCase):
             INBOX.mkdir(exist_ok=True)
         code, valeur = verdict()
         self.assertEqual(code, 0)
-        self.assertIn({'ok': True, 'texte': texte, 'corriger': '', 'attention': False}, valeur['controles'])
+        self.assertIn({'ok': True, 'texte': texte, 'corriger': '', 'attention': False, 'id': 'factures'}, valeur['controles'])
 
     def test_lecteur_de_releves(self):
         # Spec 013, T066 : le contrôle du lecteur, fait par smith-verifier jusqu'à T051, passe à moneta-verifier. Le lecteur
@@ -149,7 +149,7 @@ class TestMigrerVerifier(unittest.TestCase):
         # il sort des modes privés.
         lancer('moneta-migrer', '--appliquer')
         texte = 'Lecteur de relevés PDF présent (moneta-releve)'
-        self.assertIn({'ok': True, 'texte': texte, 'corriger': '', 'attention': False}, verdict()[1]['controles'])
+        self.assertIn({'ok': True, 'texte': texte, 'corriger': '', 'attention': False, 'id': 'lecteur'}, verdict()[1]['controles'])
         LECTEUR.unlink()
         code, valeur = verdict()
         self.assertEqual(code, 1)

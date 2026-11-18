@@ -58,7 +58,9 @@ class TestVerifierSauvegardes(unittest.TestCase):
                                                           f'Moneta, disque : copie vérifiée du {aujourdhui}',
                                                           f'Moneta, Drive : copie vérifiée du {aujourdhui} (dossier Drive du Mac)'])
         for c in controles:
-            self.assertEqual(c, {'ok': True, 'texte': c['texte'], 'corriger': '', 'attention': False})
+            self.assertEqual(c, {'ok': True, 'texte': c['texte'], 'corriger': '', 'attention': False, 'id': c['id']})
+        # Revue de la reprise 016 (Skynet), R01 : une clé stable par copie, que smith-verifier préfixe de « moneta. ».
+        self.assertEqual([c['id'] for c in controles], ['copie.mac', 'copie.disque', 'copie.drive'])
 
     def test_le_vrai_programme_dit_la_version_2(self):
         # Les autres contrôles sont rouges (aucune base) : seuls comptent ici la version, les clés et les trois derniers.
@@ -66,7 +68,7 @@ class TestVerifierSauvegardes(unittest.TestCase):
         valeur = json.loads(lancer('--json').stdout)
         self.assertEqual(valeur['version'], 2)
         for c in valeur['controles']:
-            self.assertEqual(set(c), {'ok', 'texte', 'corriger', 'attention'})
+            self.assertEqual(set(c), {'ok', 'texte', 'corriger', 'attention', 'id'})
             self.assertLessEqual(len(c['texte']), 200)
             self.assertLessEqual(len(c['corriger']), 200)
         derniers = valeur['controles'][-3:]
